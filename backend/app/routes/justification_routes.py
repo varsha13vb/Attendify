@@ -10,20 +10,26 @@ justification_bp = Blueprint("justification", __name__)
 @justification_bp.route("/apply", methods=["POST"])
 @jwt_required()
 def apply_justification():
-    data = request.get_json()
+    data = request.get_json() or {}
 
     employee_id = get_jwt_identity()
+    reason = (data.get("reason") or "").strip()
+    if not reason:
+        return jsonify({"message": "Reason is required"}), 400
 
     new_request = Justification(
         employee_id=employee_id,
         date=datetime.today().date(),   
-        reason=data.get("reason"),
+        reason=reason,
         status="Pending"
     )
 
-
-    db.session.add(new_request)
-    db.session.commit()
+    try:
+        db.session.add(new_request)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({"message": "Failed to submit justification"}), 500
 
     return jsonify({"message": "Justification submitted successfully"}), 200
 
@@ -33,7 +39,12 @@ def apply_justification():
 def get_my_justifications():
     employee_id = get_jwt_identity()
 
-    records = Justification.query.filter_by(employee_id=employee_id).all()
+    records = (
+        Justification.query
+        .filter_by(employee_id=employee_id)
+        .order_by(Justification.created_at.desc(), Justification.id.desc())
+        .all()
+    )
 
     result = []
     for r in records:

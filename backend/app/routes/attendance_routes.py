@@ -10,15 +10,20 @@ attendance_bp = Blueprint("attendance", __name__)
 def get_attendance():
     employee_id = get_jwt_identity()
 
-    records = Attendance.query.filter_by(employee_id=employee_id).all()
+    records = (
+        Attendance.query
+        .filter_by(employee_id=employee_id)
+        .order_by(Attendance.date.desc())
+        .all()
+    )
 
     result = []
     for r in records:
         result.append({
             "date": r.date.strftime("%Y-%m-%d"),
-            "check_in": str(r.check_in),
-            "late_minutes": r.late_minutes,
-            "status": r.status
+            "check_in": str(r.check_in) if r.check_in else None,
+            "late_minutes": r.late_minutes or 0,
+            "status": r.status or "Present",
         })
 
     return jsonify(result), 200

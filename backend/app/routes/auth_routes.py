@@ -1,12 +1,14 @@
-from flask import Blueprint, request, jsonify, current_app
-from flask_jwt_extended import create_access_token
-from flask_mail import Message
-from app import db, mail
-from app.models.user_model import User
-from datetime import datetime
+import logging
 import os
 import re
-import logging
+from datetime import datetime
+
+from flask import Blueprint, current_app, jsonify, request
+from flask_jwt_extended import create_access_token
+from flask_mail import Message
+
+from app import db, mail
+from app.models.user_model import User
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -23,31 +25,25 @@ def register():
     role = (data.get("role") or "employee").strip().lower()
     dob_str = data.get("dob")
 
-    # Name cannot be empty
     if not name:
         return jsonify({"message": "Name is required"}), 400
 
-    # Email format
     email_regex = r"^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_regex, email):
         return jsonify({"message": "Invalid email format"}), 400
 
-    # Password checks
     if not password or len(password) < 6:
         return jsonify({"message": "Password must be at least 6 characters"}), 400
 
     if password != confirm_password:
         return jsonify({"message": "Passwords do not match"}), 400
 
-    # Role validation
     if role not in ("employee", "admin"):
         return jsonify({"message": "Role must be either 'employee' or 'admin'"}), 400
 
-    # Check duplicate email (unique)
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "Email already exists"}), 400
 
-    # Auto generate employee_id
     last_user = User.query.order_by(User.id.desc()).first()
     if last_user and last_user.employee_id and last_user.employee_id.startswith("EMP"):
         try:
@@ -60,15 +56,13 @@ def register():
 
     new_employee_id = f"EMP{str(new_number).zfill(3)}"
 
-    # Parse DOB safely (optional)
     dob = None
     if dob_str:
         try:
-            dob = datetime.strptime(dob_str, "%Y-%m-%d")
+            dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
         except Exception:
             return jsonify({"message": "Invalid dob format. Use YYYY-MM-DD."}), 400
 
-    # Create new user
     new_user = User()
     new_user.employee_id = new_employee_id
     new_user.name = name
@@ -77,10 +71,13 @@ def register():
     new_user.role = role
     new_user.set_password(password)
 
-    db.session.add(new_user)
-    db.session.commit()
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({"message": "Failed to register user"}), 500
 
-    # Prepare and send welcome email (non-blocking failure)
     try:
         sender = current_app.config.get("MAIL_USERNAME") or os.getenv("MAIL_USERNAME")
         msg = Message(
@@ -101,8 +98,7 @@ def register():
         mail.send(msg)
         mail_status = "sent"
 
-    except Exception as e:
-        # Log the mail error but do NOT fail the registration
+    except Exception:
         logging.exception("Failed to send welcome email to %s", email)
         mail_status = "failed"
 
@@ -118,11 +114,16 @@ def register():
 # ================= LOGIN =================
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
+    data = request.get_json() or {}
+    employee_id = (data.get("employee_id") or "").strip()
+    password = data.get("password")
 
-    user = User.query.filter_by(employee_id=data["employee_id"]).first()
+    if not employee_id or not password:
+        return jsonify({"message": "Employee ID and password are required"}), 400
 
-    if not user or not user.check_password(data["password"]):
+    user = User.query.filter_by(employee_id=employee_id).first()
+
+    if not user or not user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
 
     access_token = create_access_token(identity=user.employee_id)
@@ -133,6 +134,7 @@ def login():
             "employee_id": user.employee_id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "profile_image": user.profile_image,
         }
     }), 200

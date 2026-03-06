@@ -8,11 +8,11 @@ class User(db.Model):
     employee_id = db.Column(db.String(20), unique=True, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    dob = db.Column(db.Date, nullable=False)
+    dob = db.Column(db.Date, nullable=True)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum("admin", "employee"), default="employee")
     profile_image = db.Column(db.String(255))
-    created_at = db.Column(db.TIMESTAMP)
+    created_at = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp())
 
     def set_password(self, password):
         self.password = generate_password_hash(password)
