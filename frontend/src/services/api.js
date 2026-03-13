@@ -142,7 +142,7 @@ export const updateProfile = async (formData) => {
   const token = localStorage.getItem("token");
 
   const response = await fetch(
-    "http://127.0.0.1:5000/api/profile/update-profile",
+    `${BASE_URL}/api/profile/update-profile`,
     {
       method: "PUT",
       headers: {
@@ -153,4 +153,24 @@ export const updateProfile = async (formData) => {
   );
 
   return response.json();
+};
+
+/* ================= LEAVE HISTORY ================= */
+
+export const getLeaves = async (employeeId) => {
+  const response = await fetch(
+    `${BASE_URL}/api/leave/my-leaves/${employeeId}`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch leave history");
+  }
+
+  return data;
 };

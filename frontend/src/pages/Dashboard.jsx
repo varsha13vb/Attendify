@@ -6,6 +6,7 @@ function Dashboard() {
   const [totalDays, setTotalDays] = useState(0);
   const [lateUsed, setLateUsed] = useState(0);
   const [latestLeave, setLatestLeave] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState(null);
 
   const monthlyLimit = 45;
 
@@ -45,33 +46,45 @@ function Dashboard() {
   return (
     <Layout>
       <div style={styles.wrapper}>
-        <h2 style={styles.heading}>Dashboard Overview</h2>
 
         {/* Stats Cards */}
         <div style={styles.cardContainer}>
-          <div style={styles.card}>
-            <h3>Total Attendance</h3>
-            <p style={styles.number}>{totalDays} Days</p>
-          </div>
+          {[
+            { title: "Total Attendance", value: `${totalDays} Days` },
+            { title: "Late Minutes Used", value: `${lateUsed} Minutes` },
+            {
+              title: "Late-Time Wallet",
+              value: exceeded
+                ? `Exceeded by ${lateUsed - monthlyLimit} Minutes`
+                : `${remaining} Minutes Remaining`,
+              exceeded,
+            },
+          ].map((card, index) => (
+            <div
+              key={index}
+              style={{
+                ...styles.card,
+                ...(hoverIndex === index ? styles.cardHover : {}),
+              }}
+              onMouseEnter={() => setHoverIndex(index)}
+              onMouseLeave={() => setHoverIndex(null)}
+            >
+              <h3>{card.title}</h3>
 
-          <div style={styles.card}>
-            <h3>Late Minutes Used</h3>
-            <p style={styles.number}>{lateUsed} Minutes</p>
-          </div>
-
-          <div style={styles.card}>
-            <h3>Late-Time Wallet</h3>
-            {exceeded ? (
-              <p style={styles.exceeded}>
-                Exceeded by {lateUsed - monthlyLimit} Minutes
+              <p
+                style={
+                  card.title === "Late-Time Wallet" && exceeded
+                    ? styles.exceeded
+                    : styles.number
+                }
+              >
+                {card.value}
               </p>
-            ) : (
-              <p style={styles.number}>{remaining} Minutes Remaining</p>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
 
-        {/* 🔥 CSS Progress Bar Chart */}
+        {/* Progress Chart */}
         <div style={styles.chartCard}>
           <h3>Late-Time Usage Progress</h3>
 
@@ -90,13 +103,16 @@ function Dashboard() {
           </p>
         </div>
 
-        {/* Leave Section */}
+        {/* Latest Leave */}
         {latestLeave && (
           <div style={styles.leaveCard}>
             <h3>Latest Leave Application</h3>
 
             <p><strong>Type:</strong> {latestLeave.leaveType}</p>
-            <p><strong>Duration:</strong> {latestLeave.fromDate} to {latestLeave.toDate}</p>
+            <p>
+              <strong>Duration:</strong> {latestLeave.fromDate} to {latestLeave.toDate}
+            </p>
+
             <p>
               <strong>Status:</strong>{" "}
               <span
@@ -121,12 +137,6 @@ function Dashboard() {
 const styles = {
   wrapper: {
     padding: "30px",
-    animation: "fadeSlide 0.6s ease forwards",
-  },
-
-  heading: {
-    marginBottom: "25px",
-    color: "#7D3C98",
   },
 
   cardContainer: {
@@ -140,10 +150,17 @@ const styles = {
     flex: 1,
     minWidth: "220px",
     padding: "25px",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F3E8FF",
     borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+    border: "1px solid #E9D5FF",
     textAlign: "center",
+    transition: "all 0.3s ease",
+  },
+
+  cardHover: {
+    transform: "translateY(-6px)",
+    boxShadow: "0 15px 30px rgba(0,0,0,0.15)",
+    cursor: "pointer",
   },
 
   number: {

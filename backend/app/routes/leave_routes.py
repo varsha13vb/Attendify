@@ -80,3 +80,31 @@ def get_latest_leave(employee_id):
         "toDate": latest_leave.to_date.strftime("%Y-%m-%d"),
         "status": latest_leave.status,
     }), 200
+
+@leave_bp.route("/my-leaves/<string:employee_id>", methods=["GET"])
+@jwt_required()
+def get_my_leaves(employee_id):
+
+    user = User.query.filter_by(employee_id=employee_id).first()
+    if not user:
+        return jsonify([]), 200
+
+    leaves = (
+        Leave.query
+        .filter_by(employee_id=employee_id)
+        .order_by(desc(Leave.applied_on))
+        .all()
+    )
+
+    result = []
+
+    for leave in leaves:
+        result.append({
+            "leave_type": leave.leave_type,
+            "from_date": leave.from_date.strftime("%Y-%m-%d"),
+            "to_date": leave.to_date.strftime("%Y-%m-%d"),
+            "reason": leave.reason,
+            "status": leave.status,
+        })
+
+    return jsonify(result), 200

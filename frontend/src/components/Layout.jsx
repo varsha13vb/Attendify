@@ -1,16 +1,13 @@
 import Navbar from "./Navbar";
-import Sidebar from "./Sidebar";
 
 function Layout({ children }) {
   return (
-    <div>
+    <div style={{ background: "#F5F5F5", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ display: "flex" }}>
-        <Sidebar />
-        <div style={{ padding: "20px", flex: 1 }}>
-          {children}
-        </div>
-      </div>
+
+      <main style={{ padding: "30px" }}>
+        {children}
+      </main>
     </div>
   );
 }

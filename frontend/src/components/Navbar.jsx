@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("currentUser"));
@@ -12,6 +13,8 @@ function Navbar() {
     localStorage.removeItem("currentUser");
     navigate("/");
   };
+
+  const isActive = (path) => location.pathname === path;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,13 +31,68 @@ function Navbar() {
 
   return (
     <div style={styles.navbar}>
+      {/* Logo */}
       <h2 style={styles.logo}>Attendify</h2>
 
-      <div style={styles.profileSection} onClick={(e) => e.stopPropagation()}>
-        <div
-          style={styles.profileCircle}
-          onClick={() => setOpen(!open)}
+      {/* Navigation Menu */}
+      <div style={styles.menu}>
+        <Link
+          to="/dashboard"
+          style={{
+            ...styles.menuItem,
+            ...(isActive("/dashboard") && styles.active),
+          }}
         >
+          Dashboard
+        </Link>
+
+        <Link
+          to="/attendance"
+          style={{
+            ...styles.menuItem,
+            ...(isActive("/attendance") && styles.active),
+          }}
+        >
+          Attendance
+        </Link>
+
+
+        <Link
+          to="/justification"
+          style={{
+            ...styles.menuItem,
+            ...(isActive("/justification") && styles.active),
+          }}
+        >
+          Justification
+        </Link>
+
+        <Link
+          to="/leave"
+          style={{
+            ...styles.menuItem,
+            ...(isActive("/leave") && styles.active),
+          }}
+        >
+          Leave
+        </Link>
+
+        {user?.role === "admin" && (
+          <Link
+            to="/admin"
+            style={{
+              ...styles.menuItem,
+              ...(isActive("/admin") && styles.active),
+            }}
+          >
+            Admin
+          </Link>
+        )}
+      </div>
+
+      {/* Profile Section */}
+      <div style={styles.profileSection} onClick={(e) => e.stopPropagation()}>
+        <div style={styles.profileCircle} onClick={() => setOpen(!open)}>
           {user?.name?.charAt(0)?.toUpperCase()}
         </div>
 
@@ -42,11 +100,13 @@ function Navbar() {
           <div style={styles.dropdown}>
             <p style={styles.userName}>{user?.name}</p>
             <p style={styles.userId}>{user?.employee_id}</p>
+
             <hr style={styles.divider} />
 
             <p style={styles.link} onClick={() => navigate("/profile")}>
               Profile
             </p>
+
             <p style={styles.link}>Change Password</p>
 
             <p style={styles.logout} onClick={handleLogout}>
@@ -62,20 +122,37 @@ function Navbar() {
 const styles = {
   navbar: {
     height: "70px",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#7D3C98",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0 30px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.06)",
-    borderBottom: "1px solid #F1F5F9",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
   },
 
   logo: {
     fontSize: "22px",
     fontWeight: "600",
-    color: "#7D3C98",
-    letterSpacing: "0.5px",
+    color: "#FFFFFF",
+  },
+
+  menu: {
+    display: "flex",
+    gap: "25px",
+    alignItems: "center",
+  },
+
+  menuItem: {
+    textDecoration: "none",
+    color: "#FFFFFF",
+    fontWeight: "500",
+    fontSize: "15px",
+    padding: "8px 14px",
+    borderRadius: "8px",
+  },
+
+  active: {
+    backgroundColor: "#9B59B6",
   },
 
   profileSection: {
@@ -86,15 +163,14 @@ const styles = {
     width: "42px",
     height: "42px",
     borderRadius: "50%",
-    background: "linear-gradient(135deg, #7D3C98, #5B2C6F)",
-    color: "#FFFFFF",
+    background: "#FFFFFF",
+    color: "#7D3C98",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
     fontWeight: "600",
     fontSize: "16px",
-    transition: "transform 0.2s ease",
   },
 
   dropdown: {
@@ -106,7 +182,6 @@ const styles = {
     borderRadius: "12px",
     width: "220px",
     boxShadow: "0 15px 40px rgba(0,0,0,0.08)",
-    animation: "fadeDropdown 0.25s ease forwards",
   },
 
   userName: {
@@ -132,7 +207,6 @@ const styles = {
     padding: "8px 0",
     fontSize: "14px",
     color: "#333",
-    transition: "color 0.2s ease",
   },
 
   logout: {
@@ -142,21 +216,5 @@ const styles = {
     fontWeight: "500",
   },
 };
-
-// Dropdown animation
-const styleSheet = document.styleSheets[0];
-
-styleSheet.insertRule(`
-@keyframes fadeDropdown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-`, styleSheet.cssRules.length);
 
 export default Navbar;

@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { applyLeave } from "../services/api";
+import { applyLeave, getLeaves } from "../services/api";
 
 function Leave() {
+  const [leaveHistory, setLeaveHistory] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+
   const [formData, setFormData] = useState({
     leaveType: "",
     fromDate: "",
@@ -13,6 +16,20 @@ function Leave() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchLeaves();
+  }, []);
+
+  const fetchLeaves = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+      const data = await getLeaves(user.employee_id);
+      setLeaveHistory(data || []);
+    } catch (error) {
+      console.error("Error fetching leave history:", error);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -48,11 +65,12 @@ function Leave() {
         leave_type: formData.leaveType,
         from_date: formData.fromDate,
         to_date: formData.toDate,
-        reason: formData.reason,
+        reason: formData.reason
       });
 
       if (response.message) {
         setSuccessMessage("Leave applied successfully!");
+
         setFormData({
           leaveType: "",
           fromDate: "",
@@ -60,16 +78,12 @@ function Leave() {
           reason: ""
         });
 
-        setTimeout(() => {
-          setSuccessMessage("");
-        }, 3000);
-      } else {
-        setErrorMessage("Failed to apply leave.");
+        fetchLeaves(); // refresh table
       }
 
     } catch (error) {
       console.error("Leave error:", error);
-      setErrorMessage("Something went wrong. Please try again.");
+      setErrorMessage("Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -78,21 +92,82 @@ function Leave() {
   return (
     <Layout>
       <div style={styles.wrapper}>
-        <h2 style={styles.heading}>Apply for Leave</h2>
 
-        {successMessage && (
-          <div style={styles.successBox}>{successMessage}</div>
-        )}
+        {/* Header */}
+        <div style={styles.header}>
+          <h2 style={styles.heading}>Leave History</h2>
 
-        {errorMessage && (
-          <div style={styles.errorBox}>{errorMessage}</div>
-        )}
+          <button
+            style={styles.applyButton}
+            onClick={() => setShowForm(!showForm)}
+          >
+            Apply Leave
+          </button>
+        </div>
 
-        <div style={styles.card}>
-          <form onSubmit={handleSubmit} style={styles.form}>
+        {/* Leave Table */}
+        <div style={styles.tableCard}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Type</th>
+                <th style={styles.th}>From</th>
+                <th style={styles.th}>To</th>
+                <th style={styles.th}>Reason</th>
+                <th style={styles.th}>Status</th>
+              </tr>
+            </thead>
 
-            <div style={styles.field}>
-              <label style={styles.label}>Leave Type</label>
+            <tbody>
+              {leaveHistory.length === 0 ? (
+                <tr>
+                  <td colSpan="5" style={styles.noData}>
+                    No Leave Records
+                  </td>
+                </tr>
+              ) : (
+                leaveHistory.map((leave, index) => (
+                  <tr key={index}>
+                    <td style={styles.td}>{leave.leave_type}</td>
+                    <td style={styles.td}>{leave.from_date}</td>
+                    <td style={styles.td}>{leave.to_date}</td>
+                    <td style={styles.td}>{leave.reason}</td>
+
+                    <td style={styles.td}>
+                      <span
+                        style={
+                          leave.status === "Approved"
+                            ? styles.approved
+                            : leave.status === "Rejected"
+                            ? styles.rejected
+                            : styles.pending
+                        }
+                      >
+                        {leave.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Leave Form */}
+        {showForm && (
+          <div style={styles.card}>
+            <h3 style={styles.formTitle}>Apply for Leave</h3>
+
+            {successMessage && (
+              <div style={styles.successBox}>{successMessage}</div>
+            )}
+
+            {errorMessage && (
+              <div style={styles.errorBox}>{errorMessage}</div>
+            )}
+
+            <form onSubmit={handleSubmit} style={styles.form}>
+
               <select
                 name="leaveType"
                 value={formData.leaveType}
@@ -100,18 +175,14 @@ function Leave() {
                 required
                 style={styles.input}
               >
-                <option value="">Select Leave Type</option>
+                <option value="">Leave Type</option>
                 <option value="Sick">Sick</option>
                 <option value="Casual">Casual</option>
                 <option value="Earned">Earned</option>
                 <option value="Unpaid">Unpaid</option>
-                <option value="Other">Other</option>
               </select>
-            </div>
 
-            <div style={styles.row}>
-              <div style={styles.field}>
-                <label style={styles.label}>From Date</label>
+              <div style={styles.row}>
                 <input
                   type="date"
                   name="fromDate"
@@ -120,10 +191,7 @@ function Leave() {
                   required
                   style={styles.input}
                 />
-              </div>
 
-              <div style={styles.field}>
-                <label style={styles.label}>To Date</label>
                 <input
                   type="date"
                   name="toDate"
@@ -133,126 +201,151 @@ function Leave() {
                   style={styles.input}
                 />
               </div>
-            </div>
 
-            <div style={styles.field}>
-              <label style={styles.label}>Reason</label>
               <textarea
                 name="reason"
+                placeholder="Reason"
                 value={formData.reason}
-                placeholder="Enter reason..."
                 onChange={handleChange}
                 required
                 style={styles.textarea}
               />
-            </div>
 
-            <button type="submit" style={styles.button} disabled={loading}>
-              {loading ? "Submitting..." : "Apply Leave"}
-            </button>
+              <button type="submit" style={styles.submitButton}>
+                {loading ? "Submitting..." : "Submit Leave"}
+              </button>
 
-          </form>
-        </div>
+            </form>
+          </div>
+        )}
+
       </div>
     </Layout>
   );
 }
 
 const styles = {
-  wrapper: {
-    padding: "30px",
-  },
 
-  heading: {
-    textAlign: "center",
-    color: "#7D3C98",
-    marginBottom: "25px",
-  },
+wrapper:{
+padding:"30px"
+},
 
-  card: {
-    maxWidth: "650px",
-    margin: "0 auto",
-    backgroundColor: "#FFFFFF",
-    padding: "35px",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-  },
+header:{
+display:"flex",
+justifyContent:"space-between",
+alignItems:"center",
+marginBottom:"20px"
+},
 
-  successBox: {
-    backgroundColor: "#DCFCE7",
-    color: "#166534",
-    padding: "12px",
-    borderRadius: "10px",
-    marginBottom: "20px",
-    textAlign: "center",
-    maxWidth: "650px",
-    marginLeft: "auto",
-    marginRight: "auto",
-  },
+heading:{
+color:"#7D3C98"
+},
 
-  errorBox: {
-    backgroundColor: "#FEE2E2",
-    color: "#991B1B",
-    padding: "12px",
-    borderRadius: "10px",
-    marginBottom: "20px",
-    textAlign: "center",
-    maxWidth: "650px",
-    marginLeft: "auto",
-    marginRight: "auto",
-  },
+applyButton:{
+padding:"10px 18px",
+background:"#7D3C98",
+color:"#fff",
+border:"none",
+borderRadius:"8px",
+cursor:"pointer"
+},
 
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-  },
+tableCard:{
+background:"#fff",
+borderRadius:"12px",
+boxShadow:"0 10px 20px rgba(0,0,0,0.08)",
+padding:"20px",
+marginBottom:"30px"
+},
 
-  row: {
-    display: "flex",
-    gap: "20px",
-  },
+table:{
+width:"100%",
+borderCollapse:"collapse",
+textAlign:"center"
+},
 
-  field: {
-    display: "flex",
-    flexDirection: "column",
-    flex: 1,
-  },
+th:{
+padding:"12px",
+borderBottom:"2px solid #eee"
+},
 
-  label: {
-    fontWeight: "500",
-    marginBottom: "6px",
-    color: "#333",
-  },
+td:{
+padding:"10px",
+borderBottom:"1px solid #eee"
+},
 
-  input: {
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #E5E7EB",
-    fontSize: "14px",
-    outline: "none",
-  },
+noData:{
+padding:"20px"
+},
 
-  textarea: {
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #E5E7EB",
-    minHeight: "100px",
-    fontSize: "14px",
-    resize: "none",
-  },
+approved:{
+color:"green",
+fontWeight:"600"
+},
 
-  button: {
-    padding: "14px",
-    background: "linear-gradient(135deg, #7D3C98, #5B2C6F)",
-    color: "#FFFFFF",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "600",
-    fontSize: "15px",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-  },
+rejected:{
+color:"red",
+fontWeight:"600"
+},
+
+pending:{
+color:"orange",
+fontWeight:"600"
+},
+
+card:{
+background:"#fff",
+padding:"30px",
+borderRadius:"12px",
+boxShadow:"0 10px 20px rgba(0,0,0,0.08)",
+maxWidth:"600px"
+},
+
+form:{
+display:"flex",
+flexDirection:"column",
+gap:"15px"
+},
+
+row:{
+display:"flex",
+gap:"10px"
+},
+
+input:{
+padding:"10px",
+borderRadius:"8px",
+border:"1px solid #ddd"
+},
+
+textarea:{
+padding:"10px",
+borderRadius:"8px",
+border:"1px solid #ddd",
+minHeight:"80px"
+},
+
+submitButton:{
+padding:"12px",
+background:"#7D3C98",
+color:"#fff",
+border:"none",
+borderRadius:"8px",
+cursor:"pointer"
+},
+
+successBox:{
+background:"#DCFCE7",
+padding:"10px",
+borderRadius:"8px"
+},
+
+errorBox:{
+background:"#FEE2E2",
+padding:"10px",
+borderRadius:"8px"
+}
+
 };
 
 export default Leave;

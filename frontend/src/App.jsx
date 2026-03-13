@@ -4,7 +4,6 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Attendance from "./pages/Attendance";
-import Wallet from "./pages/Wallet";
 import Justification from "./pages/Justification";
 import AdminPanel from "./pages/AdminPanel";
 import Leave from "./pages/Leave";
@@ -37,14 +36,6 @@ function App() {
         }
       />
 
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute>
-            <Wallet />
-          </ProtectedRoute>
-        }
-      />
 
       <Route
         path="/justification"

@@ -53,14 +53,16 @@ function Attendance() {
                   attendanceData.map((record, index) => (
                     <tr key={index} style={styles.tr}>
                       <td style={styles.td}>{record.date}</td>
-                      <td style={styles.td}>{record.check_in}</td>
+                      <td style={styles.td}>{record.check_in || "-"}</td>
                       <td style={styles.td}>{record.late_minutes}</td>
                       <td style={styles.td}>
                         <span
                           style={
-                            record.status === "Late"
+                            record.status === "Absent"
+                              ? styles.absentBadge
+                              : record.status === "Late"
                               ? styles.lateBadge
-                              : styles.onTimeBadge
+                              : styles.presentBadge
                           }
                         >
                           {record.status}
@@ -85,7 +87,7 @@ const styles = {
 
   heading: {
     marginBottom: "25px",
-    color: "#7D3C98",
+    color: "#000000",
   },
 
   loadingCard: {
@@ -116,7 +118,7 @@ const styles = {
   th: {
     padding: "14px",
     fontWeight: "600",
-    color: "#7D3C98",
+    color: "#000000",
     borderBottom: "2px solid #EEE",
   },
 
@@ -134,21 +136,32 @@ const styles = {
     color: "#95A5A6",
   },
 
-  lateBadge: {
+  /* STATUS COLORS */
+
+  absentBadge: {
     backgroundColor: "#FEE2E2",
     color: "#DC2626",
     padding: "6px 12px",
     borderRadius: "20px",
-    fontWeight: "500",
+    fontWeight: "600",
     fontSize: "13px",
   },
 
-  onTimeBadge: {
+  lateBadge: {
+    backgroundColor: "#FEF3C7",
+    color: "#D97706",
+    padding: "6px 12px",
+    borderRadius: "20px",
+    fontWeight: "600",
+    fontSize: "13px",
+  },
+
+  presentBadge: {
     backgroundColor: "#DCFCE7",
     color: "#16A34A",
     padding: "6px 12px",
     borderRadius: "20px",
-    fontWeight: "500",
+    fontWeight: "600",
     fontSize: "13px",
   },
 };

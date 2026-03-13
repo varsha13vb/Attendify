@@ -3,8 +3,10 @@ import Layout from "../components/Layout";
 import { applyJustification, getMyJustifications } from "../services/api";
 
 function Justification() {
+
   const [reason, setReason] = useState("");
   const [requests, setRequests] = useState([]);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchRequests();
@@ -31,6 +33,7 @@ function Justification() {
       await applyJustification(reason);
       setReason("");
       fetchRequests();
+      setShowForm(false);
     } catch (error) {
       alert(error.message);
     }
@@ -39,27 +42,20 @@ function Justification() {
   return (
     <Layout>
       <div style={styles.wrapper}>
-        <h2 style={styles.heading}>Submit Justification</h2>
 
-        {/* Form Card */}
-        <div style={styles.formCard}>
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <textarea
-              placeholder="Enter your reason for late arrival..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              style={styles.textarea}
-            />
+        {/* Header */}
+        <div style={styles.header}>
+          <h2 style={styles.heading}>Justification Requests</h2>
 
-            <button type="submit" style={styles.button}>
-              Submit Justification
-            </button>
-          </form>
+          <button
+            style={styles.applyButton}
+            onClick={() => setShowForm(!showForm)}
+          >
+            Apply Justification
+          </button>
         </div>
 
-        {/* Previous Requests */}
-        <h3 style={styles.subHeading}>Previous Requests</h3>
-
+        {/* Table */}
         <div style={styles.tableCard}>
           <table style={styles.table}>
             <thead>
@@ -82,6 +78,7 @@ function Justification() {
                   <tr key={index}>
                     <td style={styles.td}>{req.date}</td>
                     <td style={styles.td}>{req.reason}</td>
+
                     <td style={styles.td}>
                       <span
                         style={
@@ -95,130 +92,157 @@ function Justification() {
                         {req.status}
                       </span>
                     </td>
+
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Form */}
+        {showForm && (
+          <div style={styles.formCard}>
+
+            <form onSubmit={handleSubmit} style={styles.form}>
+
+              <textarea
+                placeholder="Enter your reason for late arrival..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                style={styles.textarea}
+              />
+
+              <button type="submit" style={styles.button}>
+                Submit Justification
+              </button>
+
+            </form>
+
+          </div>
+        )}
+
       </div>
     </Layout>
   );
 }
 
 const styles = {
-  wrapper: {
-    padding: "30px",
-  },
 
-  heading: {
-    marginBottom: "20px",
-    color: "#7D3C98",
-  },
+wrapper:{
+padding:"30px"
+},
 
-  subHeading: {
-    marginTop: "40px",
-    marginBottom: "15px",
-    color: "#7D3C98",
-  },
+header:{
+display:"flex",
+justifyContent:"space-between",
+alignItems:"center",
+marginBottom:"20px"
+},
 
-  formCard: {
-    backgroundColor: "#FFFFFF",
-    padding: "25px",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-    maxWidth: "600px",
-  },
+heading:{
+color:"#7D3C98"
+},
 
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
+applyButton:{
+padding:"10px 18px",
+background:"#7D3C98",
+color:"#fff",
+border:"none",
+borderRadius:"8px",
+cursor:"pointer"
+},
 
-  textarea: {
-    minHeight: "100px",
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #E5E7EB",
-    fontSize: "14px",
-    outline: "none",
-    resize: "none",
-  },
+formCard:{
+background:"#FFFFFF",
+padding:"25px",
+borderRadius:"15px",
+boxShadow:"0 10px 25px rgba(0,0,0,0.08)",
+maxWidth:"600px",
+marginTop:"25px"
+},
 
-  button: {
-    padding: "12px",
-    background: "linear-gradient(135deg, #7D3C98, #5B2C6F)",
-    color: "#FFFFFF",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "500",
-    cursor: "pointer",
-    transition: "transform 0.2s ease",
-  },
+form:{
+display:"flex",
+flexDirection:"column",
+gap:"15px"
+},
 
-  tableCard: {
-    backgroundColor: "#FFFFFF",
-    padding: "20px",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-    overflowX: "auto",
-  },
+textarea:{
+minHeight:"100px",
+padding:"12px",
+borderRadius:"10px",
+border:"1px solid #E5E7EB",
+resize:"none"
+},
 
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
+button:{
+padding:"12px",
+background:"linear-gradient(135deg,#7D3C98,#5B2C6F)",
+color:"#fff",
+border:"none",
+borderRadius:"10px",
+cursor:"pointer"
+},
 
-  headerRow: {
-    backgroundColor: "#F8F9FB",
-  },
+tableCard:{
+background:"#FFFFFF",
+padding:"20px",
+borderRadius:"15px",
+boxShadow:"0 10px 25px rgba(0,0,0,0.08)",
+overflowX:"auto"
+},
 
-  th: {
-    padding: "14px",
-    color: "#7D3C98",
-    fontWeight: "600",
-    borderBottom: "2px solid #EEE",
-    textAlign: "left",
-  },
+table:{
+width:"100%",
+borderCollapse:"collapse"
+},
 
-  td: {
-    padding: "12px",
-    borderBottom: "1px solid #F1F5F9",
-  },
+headerRow:{
+background:"#F8F9FB"
+},
 
-  noData: {
-    padding: "20px",
-    textAlign: "center",
-    color: "#95A5A6",
-  },
+th:{
+padding:"14px",
+borderBottom:"2px solid #EEE",
+textAlign:"left"
+},
 
-  pendingBadge: {
-    backgroundColor: "#FEF3C7",
-    color: "#D97706",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "500",
-  },
+td:{
+padding:"12px",
+borderBottom:"1px solid #F1F5F9"
+},
 
-  approvedBadge: {
-    backgroundColor: "#DCFCE7",
-    color: "#16A34A",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "500",
-  },
+noData:{
+padding:"20px",
+textAlign:"center",
+color:"#95A5A6"
+},
 
-  rejectedBadge: {
-    backgroundColor: "#FEE2E2",
-    color: "#DC2626",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "500",
-  },
+pendingBadge:{
+background:"#FEF3C7",
+color:"#D97706",
+padding:"6px 12px",
+borderRadius:"20px",
+fontSize:"13px"
+},
+
+approvedBadge:{
+background:"#DCFCE7",
+color:"#16A34A",
+padding:"6px 12px",
+borderRadius:"20px",
+fontSize:"13px"
+},
+
+rejectedBadge:{
+background:"#FEE2E2",
+color:"#DC2626",
+padding:"6px 12px",
+borderRadius:"20px",
+fontSize:"13px"
+}
+
 };
 
 export default Justification;

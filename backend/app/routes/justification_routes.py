@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from datetime import datetime
+
 from app import db
 from app.models.justification_model import Justification
-from datetime import datetime
 
 justification_bp = Blueprint("justification", __name__)
 
@@ -10,16 +11,18 @@ justification_bp = Blueprint("justification", __name__)
 @justification_bp.route("/apply", methods=["POST"])
 @jwt_required()
 def apply_justification():
+
     data = request.get_json() or {}
 
     employee_id = get_jwt_identity()
     reason = (data.get("reason") or "").strip()
+
     if not reason:
         return jsonify({"message": "Reason is required"}), 400
 
     new_request = Justification(
         employee_id=employee_id,
-        date=datetime.today().date(),   
+        date=datetime.today().date(),
         reason=reason,
         status="Pending"
     )
@@ -31,12 +34,16 @@ def apply_justification():
         db.session.rollback()
         return jsonify({"message": "Failed to submit justification"}), 500
 
-    return jsonify({"message": "Justification submitted successfully"}), 200
+    return jsonify({
+        "message": "Justification submitted successfully"
+    }), 200
 
 
+# ================= GET MY JUSTIFICATIONS =================
 @justification_bp.route("/my", methods=["GET"])
 @jwt_required()
 def get_my_justifications():
+
     employee_id = get_jwt_identity()
 
     records = (
@@ -46,12 +53,11 @@ def get_my_justifications():
         .all()
     )
 
-    result = []
-    for r in records:
-        result.append({
+    return jsonify([
+        {
             "date": r.date.strftime("%Y-%m-%d"),
             "reason": r.reason,
             "status": r.status
-        })
-
-    return jsonify(result), 200
+        }
+        for r in records
+    ]), 200
