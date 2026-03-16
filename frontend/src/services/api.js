@@ -38,7 +38,13 @@ export const registerUser = async (userData) => {
     body: JSON.stringify(userData)
   });
 
-  return response.json();
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Registration failed");
+  }
+
+  return data;
 };
 
 /* ---------------- ATTENDANCE ---------------- */
@@ -155,6 +161,7 @@ export const updateProfile = async (formData) => {
   return response.json();
 };
 
+
 /* ================= LEAVE HISTORY ================= */
 
 export const getLeaves = async (employeeId) => {
@@ -174,3 +181,5 @@ export const getLeaves = async (employeeId) => {
 
   return data;
 };
+
+

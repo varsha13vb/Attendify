@@ -35,9 +35,11 @@ def _resolve_database_uri(base_dir: Path) -> str:
 
 
 def create_app() -> Flask:
-    load_dotenv()
-
     backend_dir = Path(__file__).resolve().parents[1]
+    loaded_env = load_dotenv(backend_dir / ".env")
+    if not loaded_env:
+        load_dotenv()
+
     upload_dir = backend_dir / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
 

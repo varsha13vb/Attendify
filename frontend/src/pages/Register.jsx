@@ -53,9 +53,11 @@ function Register() {
         }).then(() => {
           navigate("/");
         });
+      } else {
+        Swal.fire("Error", data.message || "Registration failed", "error");
       }
     } catch (error) {
-      Swal.fire("Error", "Something went wrong!", "error");
+      Swal.fire("Error", error?.message || "Something went wrong!", "error");
     }
 
     setLoading(false);
