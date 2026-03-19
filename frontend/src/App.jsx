@@ -9,6 +9,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Leave from "./pages/Leave";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
+import Preferences from "./pages/Preferences";
 
 function App() {
   return (
@@ -73,6 +74,16 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route
+        path="/preferences"
+        element={
+          <ProtectedRoute>
+            <Preferences />
+          </ProtectedRoute>
+        }
+      />
+
     </Routes>
   );
 }

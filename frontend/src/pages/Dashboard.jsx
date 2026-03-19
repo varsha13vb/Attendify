@@ -1,227 +1,317 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { getAttendance, getLatestLeave } from "../services/api";
+import {
+  getAttendance,
+  getLatestLeave,
+  getUpcomingHolidays,
+  getNotifications,
+  getLeaves
+} from "../services/api";
+
+import Chart from "react-apexcharts";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 
 function Dashboard() {
+
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [latestLeave, setLatestLeave] = useState(null);
+
+  const [holidays, setHolidays] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
   const [totalDays, setTotalDays] = useState(0);
   const [lateUsed, setLateUsed] = useState(0);
-  const [latestLeave, setLatestLeave] = useState(null);
-  const [hoverIndex, setHoverIndex] = useState(null);
+  const [leaveStatusSeries, setLeaveStatusSeries] = useState([0,0,0]);
 
   const monthlyLimit = 45;
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+
+    const fetchData = async () => {
+
       try {
+
         const attendance = await getAttendance();
+        setAttendanceData(attendance);
 
-        if (attendance && attendance.length > 0) {
-          setTotalDays(attendance.length);
+        setTotalDays(attendance.length);
 
-          const totalLate = attendance.reduce(
-            (sum, record) => sum + (record.late_minutes || 0),
-            0
-          );
+        const totalLate = attendance.reduce(
+          (sum, r) => sum + (r.late_minutes || 0), 0
+        );
 
-          setLateUsed(totalLate);
-        }
+        setLateUsed(totalLate);
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
+
         if (user) {
-          const leave = await getLatestLeave(user.employee_id);
-          setLatestLeave(leave);
+
+          const leaveList = await getLeaves(user.employee_id);
+          setLeaves(leaveList);
+
+          const latest = await getLatestLeave(user.employee_id);
+          setLatestLeave(latest);
+
+          const approved = leaveList.filter(l => l.status === "Approved").length;
+          const pending = leaveList.filter(l => l.status === "Pending").length;
+          const rejected = leaveList.filter(l => l.status === "Rejected").length;
+
+          setLeaveStatusSeries([approved, pending, rejected]);
         }
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
+
+        setHolidays(await getUpcomingHolidays());
+        setNotifications(await getNotifications());
+
+      } catch (err) {
+        console.error(err);
       }
     };
 
-    fetchDashboardData();
+    fetchData();
+
   }, []);
 
-  const exceeded = lateUsed > monthlyLimit;
+  /* ===== WEEKLY ===== */
+
+  const weekDays = ["Mon","Tue","Wed","Thu","Fri"];
+
+  const weeklyAttendance = weekDays.map(day => {
+    const record = attendanceData.find(r => {
+      const d = new Date(r.date);
+      return d.toLocaleDateString("en-US",{weekday:"short"}) === day;
+    });
+    return record ? 1 : 0;
+  });
+
   const remaining = Math.max(monthlyLimit - lateUsed, 0);
-  const usagePercent = Math.min((lateUsed / monthlyLimit) * 100, 100);
+
+  /* ===== WHO'S ON LEAVE ===== */
+
+  const today = new Date();
+
+  const todaysLeaves = leaves.filter(l => {
+    if (l.status !== "Approved") return false;
+
+    const from = new Date(l.from_date);
+    const to = new Date(l.to_date);
+
+    return today >= from && today <= to;
+  });
+
+  /* ===== CHART CONFIG ===== */
+
+  const barOptions = {
+    chart: { id: "bar" },
+    xaxis: { categories: weekDays },
+    colors: ["#7D3C98"]
+  };
+
+  const lineOptions = {
+    chart: { id: "line" },
+    xaxis: { categories: weekDays },
+    colors: ["#7D3C98"]
+  };
+
+  const pieOptions = {
+    labels: ["Used","Remaining"],
+    colors: ["#7D3C98","#E9D5FF"]
+  };
+
+  const leaveOptions = {
+    labels: ["Approved","Pending","Rejected"],
+    colors: ["#22c55e","#f59e0b","#ef4444"]
+  };
+
+  const user = JSON.parse(localStorage.getItem("currentUser"));
 
   return (
     <Layout>
+
       <div style={styles.wrapper}>
 
-        {/* Stats Cards */}
-        <div style={styles.cardContainer}>
-          {[
-            { title: "Total Attendance", value: `${totalDays} Days` },
-            { title: "Late Minutes Used", value: `${lateUsed} Minutes` },
-            {
-              title: "Late-Time Wallet",
-              value: exceeded
-                ? `Exceeded by ${lateUsed - monthlyLimit} Minutes`
-                : `${remaining} Minutes Remaining`,
-              exceeded,
-            },
-          ].map((card, index) => (
-            <div
-              key={index}
-              style={{
-                ...styles.card,
-                ...(hoverIndex === index ? styles.cardHover : {}),
-              }}
-              onMouseEnter={() => setHoverIndex(index)}
-              onMouseLeave={() => setHoverIndex(null)}
-            >
-              <h3>{card.title}</h3>
-
-              <p
-                style={
-                  card.title === "Late-Time Wallet" && exceeded
-                    ? styles.exceeded
-                    : styles.number
-                }
-              >
-                {card.value}
-              </p>
-            </div>
-          ))}
+        {/* HEADER */}
+        <div style={styles.header}>
+          <h2>Welcome back, {user?.name} 👋</h2>
         </div>
 
-        {/* Progress Chart */}
-        <div style={styles.chartCard}>
-          <h3>Late-Time Usage Progress</h3>
+        {/* SUMMARY */}
+        <div style={styles.summary}>
 
-          <div style={styles.progressWrapper}>
-            <div
-              style={{
-                ...styles.progressBar,
-                width: `${usagePercent}%`,
-                backgroundColor: exceeded ? "red" : "#7D3C98",
+          <div style={styles.card}>
+            <h4>Total Attendance</h4>
+            <p>{totalDays}</p>
+          </div>
+
+          <div style={styles.card}>
+            <h4>Late Minutes</h4>
+            <p>{lateUsed}</p>
+          </div>
+
+          <div style={styles.card}>
+            <h4>Remaining</h4>
+            <p>{remaining}</p>
+          </div>
+
+        </div>
+
+        {/* CHARTS */}
+        <div style={styles.grid}>
+
+          <div style={styles.box}>
+            <h3>Weekly Attendance</h3>
+            <Chart options={barOptions} series={[{data: weeklyAttendance}]} type="bar" height={220}/>
+          </div>
+
+          <div style={styles.box}>
+            <h3>Late Usage</h3>
+            <Chart options={pieOptions} series={[lateUsed, remaining]} type="pie" height={220}/>
+          </div>
+
+          <div style={styles.box}>
+            <h3>Trend</h3>
+            <Chart options={lineOptions} series={[{data: weeklyAttendance}]} type="line" height={220}/>
+          </div>
+
+        </div>
+
+        {/* ANNOUNCEMENT + WHO'S ON LEAVE */}
+        <div style={styles.twoCol}>
+
+          <div style={styles.box}>
+            <h3>Announcements</h3>
+            {notifications.map((n,i)=>(
+              <p key={i}>📢 {n.message}</p>
+            ))}
+          </div>
+
+          <div style={styles.box}>
+            <h3>Who's on Leave</h3>
+
+            {todaysLeaves.length === 0
+              ? <p>No one on leave</p>
+              : todaysLeaves.map((l,i)=>(
+                <p key={i}>👤 {l.leave_type}</p>
+              ))
+            }
+
+          </div>
+
+        </div>
+
+        {/* LEAVE TABLE + CALENDAR */}
+        <div style={styles.twoCol}>
+
+          <div style={styles.box}>
+            <h3>Leave Requests</h3>
+
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th>From</th>
+                  <th>To</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {leaves.map((l,i)=>(
+                  <tr key={i}>
+                    <td>{l.from_date}</td>
+                    <td>{l.to_date}</td>
+                    <td>{l.leave_type}</td>
+                    <td>{l.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          </div>
+
+          <div style={styles.box}>
+            <h3>Calendar</h3>
+
+            <Calendar
+              tileClassName={({date})=>{
+                const h = holidays.find(
+                  d=> new Date(d.date).toDateString() === date.toDateString()
+                );
+                return h ? "holiday" : null;
               }}
             />
+
           </div>
 
-          <p style={styles.percentText}>
-            {usagePercent.toFixed(1)}% of monthly limit used
-          </p>
         </div>
 
-        {/* Latest Leave */}
-        {latestLeave && (
-          <div style={styles.leaveCard}>
-            <h3>Latest Leave Application</h3>
-
-            <p><strong>Type:</strong> {latestLeave.leaveType}</p>
-            <p>
-              <strong>Duration:</strong> {latestLeave.fromDate} to {latestLeave.toDate}
-            </p>
-
-            <p>
-              <strong>Status:</strong>{" "}
-              <span
-                style={
-                  latestLeave.status === "Approved"
-                    ? styles.approved
-                    : latestLeave.status === "Rejected"
-                    ? styles.rejected
-                    : styles.pending
-                }
-              >
-                {latestLeave.status}
-              </span>
-            </p>
-          </div>
-        )}
       </div>
+
     </Layout>
   );
 }
 
+/* ===== STYLES ===== */
+
 const styles = {
-  wrapper: {
-    padding: "30px",
+
+  wrapper: { width: "100%" },
+
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "20px"
   },
 
-  cardContainer: {
-    display: "flex",
-    gap: "20px",
-    flexWrap: "wrap",
-    marginBottom: "40px",
+  btn: {
+    background: "#E91E63",
+    color: "#fff",
+    border: "none",
+    padding: "10px 15px",
+    borderRadius: "8px"
+  },
+
+  summary: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+    gap: "15px",
+    marginBottom: "25px"
   },
 
   card: {
-    flex: 1,
-    minWidth: "220px",
-    padding: "25px",
-    backgroundColor: "#F3E8FF",
-    borderRadius: "15px",
-    border: "1px solid #E9D5FF",
-    textAlign: "center",
-    transition: "all 0.3s ease",
+    background: "#F3E8FF",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center"
   },
 
-  cardHover: {
-    transform: "translateY(-6px)",
-    boxShadow: "0 15px 30px rgba(0,0,0,0.15)",
-    cursor: "pointer",
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
+    gap: "20px",
+    marginBottom: "25px"
   },
 
-  number: {
-    fontSize: "22px",
-    fontWeight: "600",
-    color: "#7D3C98",
+  twoCol: {
+    display: "grid",
+    gridTemplateColumns: "2fr 1fr",
+    gap: "20px",
+    marginBottom: "25px"
   },
 
-  exceeded: {
-    color: "red",
-    fontWeight: "bold",
+  box: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.05)"
   },
 
-  chartCard: {
-    padding: "25px",
-    backgroundColor: "#FFFFFF",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-    marginBottom: "40px",
-  },
-
-  progressWrapper: {
+  table: {
     width: "100%",
-    height: "20px",
-    backgroundColor: "#E5E7EB",
-    borderRadius: "10px",
-    overflow: "hidden",
-    marginTop: "15px",
-  },
+    borderCollapse: "collapse"
+  }
 
-  progressBar: {
-    height: "100%",
-    transition: "width 0.6s ease",
-  },
-
-  percentText: {
-    marginTop: "10px",
-    fontWeight: "500",
-  },
-
-  leaveCard: {
-    padding: "25px",
-    backgroundColor: "#FFFFFF",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-  },
-
-  approved: {
-    color: "green",
-    fontWeight: "bold",
-  },
-
-  rejected: {
-    color: "red",
-    fontWeight: "bold",
-  },
-
-  pending: {
-    color: "orange",
-    fontWeight: "bold",
-  },
 };
 
 export default Dashboard;

@@ -73,3 +73,9 @@ button:focus-visible {
 h1, h2, h3 {
   color: var(--primary-purple);
 }
+/* ---------- holiday calender ---------- */
+.holiday {
+  background: #ef4444 !important;
+  color: white !important;
+  border-radius: 6px;
+}

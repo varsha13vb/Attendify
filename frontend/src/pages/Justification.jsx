@@ -45,7 +45,7 @@ function Justification() {
 
         {/* Header */}
         <div style={styles.header}>
-          <h2 style={styles.heading}>Justification Requests</h2>
+          <h2 style={styles.heading}>Late Justification Requests</h2>
 
           <button
             style={styles.applyButton}

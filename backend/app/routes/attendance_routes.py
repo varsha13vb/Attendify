@@ -4,7 +4,6 @@ from app.models.attendance_model import Attendance
 
 attendance_bp = Blueprint("attendance", __name__)
 
-
 @attendance_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_attendance():

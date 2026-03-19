@@ -174,3 +174,84 @@ export const getLeaves = async (employeeId) => {
 
   return data;
 };
+
+/* ================= HOLIDAYS ================= */
+
+export const getUpcomingHolidays = async () => {
+  const response = await fetch(
+    `${BASE_URL}/api/holidays/upcoming`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch holidays");
+  }
+
+  return data;
+};
+
+
+/* ================= NOTIFICATIONS ================= */
+
+export const getNotifications = async () => {
+  const response = await fetch(
+    `${BASE_URL}/api/notifications`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch notifications");
+  }
+
+  return data;
+};
+
+/* ================= PREFERENCES ================= */
+
+export const getPreferences = async () => {
+  const response = await fetch(
+    `${BASE_URL}/api/preferences/get`,
+    {
+      method: "GET",
+      headers: getAuthHeaders(),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch preferences");
+  }
+
+  return data;
+};
+
+
+export const updatePreferences = async (preferencesData) => {
+  const response = await fetch(
+    `${BASE_URL}/api/preferences/update`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(preferencesData),
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update preferences");
+  }
+
+  return data;
+};
