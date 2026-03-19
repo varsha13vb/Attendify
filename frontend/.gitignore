@@ -13,6 +13,7 @@ venv/
 
 # ================= NODE =================
 node_modules/
+backend/migrations/
 dist/
 dist-ssr/
 *.local
