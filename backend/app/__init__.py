@@ -9,10 +9,12 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate   # ✅ IMPORTANT
 
 db = SQLAlchemy()
 jwt = JWTManager()
 mail = Mail()
+migrate = Migrate()   # ✅ ADD THIS
 
 
 def _resolve_database_uri(base_dir: Path) -> str:
@@ -44,6 +46,7 @@ def create_app() -> Flask:
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     app = Flask(__name__)
+
     app.config["SQLALCHEMY_DATABASE_URI"] = _resolve_database_uri(backend_dir)
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JWT_SECRET_KEY"] = (
@@ -64,17 +67,23 @@ def create_app() -> Flask:
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_USERNAME")
 
+    # ✅ INIT EXTENSIONS
     db.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
+    migrate.init_app(app, db)   # ✅ THIS FIXES YOUR ERROR
+
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    from app.models.attendance_model import Attendance  # noqa: F401
-    from app.models.justification_model import Justification  # noqa: F401
-    from app.models.leave_model import Leave  # noqa: F401
-    from app.models.late_wallet_model import LateWallet  # noqa: F401
-    from app.models.notification_model import Notification  # noqa: F401
-    from app.models.user_model import User  # noqa: F401
+    # ===== IMPORT MODELS =====
+    from app.models.attendance_model import Attendance
+    from app.models.justification_model import Justification
+    from app.models.leave_model import Leave
+    from app.models.late_wallet_model import LateWallet
+    from app.models.notification_model import Notification
+    from app.models.user_model import User
+
+    # ===== IMPORT ROUTES =====
     from app.routes.admin_routes import admin_bp
     from app.routes.attendance_routes import attendance_bp
     from app.routes.auth_routes import auth_bp
@@ -82,7 +91,9 @@ def create_app() -> Flask:
     from app.routes.leave_routes import leave_bp
     from app.routes.profile_routes import profile_bp
     from app.routes.wallet_routes import wallet_bp
+    from app.routes.preferences_routes import preferences_bp   # ✅ ADD THIS
 
+    # ===== REGISTER ROUTES =====
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(attendance_bp, url_prefix="/api/attendance")
     app.register_blueprint(leave_bp, url_prefix="/api/leave")
@@ -90,7 +101,9 @@ def create_app() -> Flask:
     app.register_blueprint(profile_bp, url_prefix="/api/profile")
     app.register_blueprint(wallet_bp, url_prefix="/api/wallet")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
+    app.register_blueprint(preferences_bp, url_prefix="/api/preferences")  # ✅ ADD
 
+    # ===== HEALTH CHECK =====
     @app.route("/api/health", methods=["GET"])
     def health():
         return jsonify({"status": "ok"}), 200

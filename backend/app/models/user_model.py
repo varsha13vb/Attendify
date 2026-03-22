@@ -12,6 +12,14 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum("admin", "employee"), default="employee")
     profile_image = db.Column(db.String(255))
+
+    # ===== NEW: PREFERENCES =====
+    dark_mode = db.Column(db.Boolean, default=False)
+    email_notifications = db.Column(db.Boolean, default=True)
+    push_notifications = db.Column(db.Boolean, default=False)
+    attendance_alerts = db.Column(db.Boolean, default=True)
+    leave_requests = db.Column(db.Boolean, default=True)
+
     created_at = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp())
 
     def set_password(self, password):
