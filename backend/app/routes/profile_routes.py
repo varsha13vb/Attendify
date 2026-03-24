@@ -59,3 +59,36 @@ def update_profile():
 @profile_bp.route("/uploads/<path:filename>", methods=["GET"])
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+@profile_bp.route("/change-password", methods=["PUT"])
+@jwt_required()
+def change_password():
+    employee_id = get_jwt_identity()
+    user = User.query.filter_by(employee_id=employee_id).first()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    data = request.get_json() or {}
+    old_password = data.get("old_password") or data.get("oldPassword")
+    new_password = data.get("new_password") or data.get("newPassword")
+
+    if not old_password or not new_password:
+        return jsonify({"message": "old_password and new_password are required"}), 400
+
+    if len(new_password) < 6:
+        return jsonify({"message": "New password must be at least 6 characters"}), 400
+
+    if not user.check_password(old_password):
+        return jsonify({"message": "Old password is incorrect"}), 400
+
+    user.set_password(new_password)
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({"message": "Failed to update password"}), 500
+
+    return jsonify({"message": "Password updated successfully"}), 200

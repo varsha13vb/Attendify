@@ -1,6 +1,30 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { getPreferences, updatePreferences } from "../services/api";
+import { changePassword, getPreferences, updatePreferences } from "../services/api";
+
+function ToggleSwitch({ checked, onChange, disabled }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={onChange}
+      disabled={disabled}
+      style={{
+        ...toggleStyles.track,
+        ...(checked ? toggleStyles.trackOn : toggleStyles.trackOff),
+        ...(disabled ? toggleStyles.trackDisabled : null),
+      }}
+    >
+      <span
+        style={{
+          ...toggleStyles.knob,
+          transform: checked ? "translateX(21px)" : "translateX(0px)",
+        }}
+      />
+    </button>
+  );
+}
 
 function Preferences() {
 
@@ -15,6 +39,7 @@ function Preferences() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,15 +72,23 @@ function Preferences() {
     }
   };
 
-  const handlePasswordChange = () => {
+  const handlePasswordChange = async () => {
     if (!oldPassword || !newPassword) {
       alert("Fill all fields");
       return;
     }
 
-    alert("Password API not connected yet");
-    setOldPassword("");
-    setNewPassword("");
+    try {
+      setPasswordLoading(true);
+      await changePassword({ oldPassword, newPassword });
+      alert("Password updated successfully!");
+      setOldPassword("");
+      setNewPassword("");
+    } catch (err) {
+      alert(err?.message || "Failed to update password");
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   return (
@@ -78,14 +111,11 @@ function Preferences() {
             <div key={key} style={styles.row}>
               <span>{label}</span>
 
-              <label style={styles.switch}>
-                <input
-                  type="checkbox"
-                  checked={settings[key]}
-                  onChange={() => handleToggle(key)}
-                />
-                <span style={styles.slider}></span>
-              </label>
+              <ToggleSwitch
+                checked={Boolean(settings[key])}
+                onChange={() => handleToggle(key)}
+                disabled={loading}
+              />
             </div>
           ))}
 
@@ -98,14 +128,11 @@ function Preferences() {
           <div style={styles.row}>
             <span>Dark Mode</span>
 
-            <label style={styles.switch}>
-              <input
-                type="checkbox"
-                checked={settings.darkMode}
-                onChange={() => handleToggle("darkMode")}
-              />
-              <span style={styles.slider}></span>
-            </label>
+            <ToggleSwitch
+              checked={Boolean(settings.darkMode)}
+              onChange={() => handleToggle("darkMode")}
+              disabled={loading}
+            />
           </div>
 
         </div>
@@ -130,12 +157,16 @@ function Preferences() {
             style={styles.input}
           />
 
-          <button style={styles.smallBtn} onClick={handlePasswordChange}>
-            Update Password
+          <button
+            style={styles.smallBtn}
+            onClick={handlePasswordChange}
+            disabled={passwordLoading}
+          >
+            {passwordLoading ? "Updating..." : "Update Password"}
           </button>
         </div>
 
-        <button style={styles.button} onClick={handleSave}>
+        <button style={styles.button} onClick={handleSave} disabled={loading}>
           {loading ? "Saving..." : "Save Preferences"}
         </button>
 
@@ -186,6 +217,7 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "8px",
+    cursor: "pointer",
   },
 
   smallBtn: {
@@ -195,28 +227,42 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "8px",
-  },
-
-  /* TOGGLE */
-  switch: {
-    position: "relative",
-    display: "inline-block",
-    width: "45px",
-    height: "24px",
-  },
-
-  slider: {
-    position: "absolute",
     cursor: "pointer",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "#ccc",
-    borderRadius: "34px",
-    transition: ".3s",
   },
 
 };
 
 export default Preferences;
+
+const toggleStyles = {
+  track: {
+    width: "46px",
+    height: "24px",
+    borderRadius: "999px",
+    border: "none",
+    padding: "2px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    transition: "background-color 0.2s ease",
+  },
+  trackOn: {
+    backgroundColor: "#7D3C98",
+  },
+  trackOff: {
+    backgroundColor: "#BDC3C7",
+  },
+  trackDisabled: {
+    opacity: 0.6,
+    cursor: "not-allowed",
+  },
+  knob: {
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    backgroundColor: "#FFFFFF",
+    transition: "transform 0.2s ease",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+  },
+};

@@ -29,7 +29,11 @@ function Login() {
 
       if (data.access_token) {
         localStorage.setItem("token", data.access_token);
-        localStorage.setItem("currentUser", JSON.stringify(data.user));
+        if (data.user) {
+          localStorage.setItem("currentUser", JSON.stringify(data.user));
+        } else {
+          localStorage.removeItem("currentUser");
+        }
         navigate("/dashboard");
       } else {
         setError(data.message || "Invalid Employee ID or Password");

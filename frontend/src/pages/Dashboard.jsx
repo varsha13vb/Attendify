@@ -44,7 +44,13 @@ function Dashboard() {
 
         setLateUsed(totalLate);
 
-        const user = JSON.parse(localStorage.getItem("currentUser"));
+        const currentUserRaw = localStorage.getItem("currentUser");
+        let user = null;
+        try {
+          user = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+        } catch {
+          user = null;
+        }
 
         if (user) {
 

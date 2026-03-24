@@ -1,10 +1,12 @@
 from app import create_app, db
+from app.services.schema_service import ensure_schema
 
 app = create_app()
 
 with app.app_context():
     try:
         db.create_all()
+        ensure_schema()
         print("Database connected and tables ensured.")
     except Exception as exc:
         print(f"Database initialization failed: {exc}")

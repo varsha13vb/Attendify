@@ -161,6 +161,25 @@ export const updateProfile = async (formData) => {
   return response.json();
 };
 
+export const changePassword = async ({ oldPassword, newPassword }) => {
+  const response = await fetch(`${BASE_URL}/api/profile/change-password`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      old_password: oldPassword,
+      new_password: newPassword,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update password");
+  }
+
+  return data;
+};
+
 
 /* ================= LEAVE HISTORY ================= */
 

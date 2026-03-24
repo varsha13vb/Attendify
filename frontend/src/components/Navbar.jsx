@@ -3,7 +3,12 @@ import { useLocation } from "react-router-dom";
 function Navbar() {
 
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem("currentUser"));
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("currentUser") || "null");
+  } catch {
+    user = null;
+  }
 
   const getTitle = () => {
     switch (location.pathname) {

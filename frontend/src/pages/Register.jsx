@@ -33,10 +33,39 @@ function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    const name = (formData.name || "").trim();
+    const email = (formData.email || "").trim().toLowerCase();
+    const password = formData.password || "";
+    const confirmPassword = formData.confirmPassword || "";
+
+    if (!name || !email || !password || !confirmPassword) {
+      Swal.fire("Error", "Please fill all fields", "error");
+      return;
+    }
+
+    const emailRegex = /^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      Swal.fire("Error", "Invalid email format", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      Swal.fire("Error", "Password must be at least 6 characters", "error");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire("Error", "Passwords do not match", "error");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { confirmPassword, ...dataToSend } = formData;
+      const { confirmPassword: _confirmPassword, ...dataToSend } = formData;
+      dataToSend.name = name;
+      dataToSend.email = email;
       // backend expects `confirm_password`; include it in payload
       dataToSend.confirm_password = confirmPassword;
       const data = await registerUser(dataToSend);
@@ -58,9 +87,9 @@ function Register() {
       }
     } catch (error) {
       Swal.fire("Error", error?.message || "Something went wrong!", "error");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -70,11 +99,11 @@ function Register() {
         <form style={styles.form} onSubmit={handleRegister}>
           <h2 style={styles.heading}>Create Account</h2>
 
-          <input type="text" name="name" placeholder="Full Name" onChange={handleChange} style={styles.input} />
-          <input type="email" name="email" placeholder="Email" onChange={handleChange} style={styles.input} />
-          <input type="date" name="dob" onChange={handleChange} style={styles.input} />
-          <input type="password" name="password" placeholder="Password" onChange={handleChange} style={styles.input} />
-          <input type="password" name="confirmPassword" placeholder="Confirm Password" onChange={handleChange} style={styles.input} />
+          <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} style={styles.input} />
+          <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} style={styles.input} />
+          <input type="date" name="dob" value={formData.dob} onChange={handleChange} style={styles.input} />
+          <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} style={styles.input} />
+          <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} style={styles.input} />
 
           <div style={styles.roleWrapper}>
             <button type="button"

@@ -9,6 +9,7 @@ from flask_mail import Message
 
 from app import db, mail
 from app.models.user_model import User
+from app.services.email_service import send_message_async
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -97,15 +98,18 @@ def register():
         mail_status = "skipped"
     else:
         try:
+            if not current_app.config.get("SEND_WELCOME_EMAIL", True):
+                mail_status = "disabled"
+                raise StopIteration()
+
             sender = (
                 current_app.config.get("MAIL_DEFAULT_SENDER")
                 or current_app.config.get("MAIL_USERNAME")
                 or os.getenv("MAIL_USERNAME")
             )
-            if not current_app.config.get("MAIL_SERVER"):
-                raise RuntimeError("MAIL_SERVER is not configured")
-            if not sender:
-                raise RuntimeError("MAIL_DEFAULT_SENDER/MAIL_USERNAME is not configured")
+            if not current_app.config.get("MAIL_SERVER") or not sender:
+                mail_status = "skipped"
+                raise StopIteration()
 
             msg = Message(
                 subject="Welcome to Attendify",
@@ -122,9 +126,15 @@ def register():
             <p>Please keep this ID safe for login.</p>
             """
 
-            mail.send(msg)
-            mail_status = "sent"
+            if current_app.config.get("WELCOME_EMAIL_ASYNC", True):
+                send_message_async(current_app._get_current_object(), msg)
+                mail_status = "queued"
+            else:
+                mail.send(msg)
+                mail_status = "sent"
 
+        except StopIteration:
+            pass
         except Exception:
             logging.exception("Failed to send welcome email to %s", email)
             mail_status = "failed"
@@ -152,6 +162,14 @@ def login():
 
     if not user or not user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
+
+    # Optional: rehash to match configured bcrypt rounds (e.g., faster dev logins).
+    try:
+        if user.maybe_rehash_password(password):
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+        logging.exception("Password rehash failed for %s", user.employee_id)
 
     access_token = create_access_token(identity=user.employee_id)
 

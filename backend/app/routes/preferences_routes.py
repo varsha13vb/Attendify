@@ -6,19 +6,27 @@ from app.models.user_model import User
 preferences_bp = Blueprint("preferences", __name__)
 
 
+def _bool_or_default(value, default: bool) -> bool:
+    if value is None:
+        return default
+    return bool(value)
+
+
 @preferences_bp.route("/get", methods=["GET"])
 @jwt_required()
 def get_preferences():
     user_id = get_jwt_identity()
 
-    user = User.query.get(user_id)
+    user = User.query.filter_by(employee_id=user_id).first()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
 
     return jsonify({
-        "darkMode": user.dark_mode or False,
-        "emailNotifications": user.email_notifications or True,
-        "pushNotifications": user.push_notifications or False,
-        "attendanceAlerts": user.attendance_alerts or True,
-        "leaveRequests": user.leave_requests or True
+        "darkMode": _bool_or_default(user.dark_mode, False),
+        "emailNotifications": _bool_or_default(user.email_notifications, True),
+        "pushNotifications": _bool_or_default(user.push_notifications, False),
+        "attendanceAlerts": _bool_or_default(user.attendance_alerts, True),
+        "leaveRequests": _bool_or_default(user.leave_requests, True),
     }), 200
 
 
@@ -26,9 +34,11 @@ def get_preferences():
 @jwt_required()
 def update_preferences():
     user_id = get_jwt_identity()
-    data = request.get_json()
+    data = request.get_json() or {}
 
-    user = User.query.get(user_id)
+    user = User.query.filter_by(employee_id=user_id).first()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
 
     user.dark_mode = data.get("darkMode", False)
     user.email_notifications = data.get("emailNotifications", True)
