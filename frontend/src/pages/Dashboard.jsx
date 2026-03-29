@@ -258,66 +258,173 @@ function Dashboard() {
   );
 }
 
-/* ===== STYLES ===== */
-
 const styles = {
 
-  wrapper: { width: "100%" },
+  /* ===== MAIN WRAPPER ===== */
+  wrapper: {
+    width: "100%",
+    maxWidth: "92%",
+    margin: "0 auto",
+    padding: "2em",
+    minHeight: "100vh"
+  },
 
+  /* ===== HEADER ===== */
   header: {
+    marginBottom: "2em",
     display: "flex",
     justifyContent: "space-between",
-    marginBottom: "20px"
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "1em"
   },
 
-  btn: {
-    background: "#E91E63",
-    color: "#fff",
-    border: "none",
-    padding: "10px 15px",
-    borderRadius: "8px"
+  heading: {
+    fontSize: "1.5em",
+    fontWeight: "600",
+    color: "#7D3C98"
   },
 
+  /* ===== SUMMARY CARDS ===== */
   summary: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
-    gap: "15px",
-    marginBottom: "25px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(14em, 1fr))",
+    gap: "1.5em",
+    marginBottom: "2em"
   },
 
   card: {
-    background: "#F3E8FF",
-    padding: "20px",
-    borderRadius: "12px",
-    textAlign: "center"
+    background: "linear-gradient(135deg, #7D3C98, #5B2C6F)",
+    color: "#fff",
+    padding: "1.6em",
+    borderRadius: "1.2em",
+    textAlign: "center",
+    boxShadow: "0 0.8em 2em rgba(125,60,152,0.35)",
+    transition: "all 0.3s ease",
+    cursor: "pointer"
   },
 
+  cardTitle: {
+    fontSize: "0.9em",
+    opacity: 0.9
+  },
+
+  cardValue: {
+    fontSize: "1.5em",
+    fontWeight: "600",
+    marginTop: "0.4em"
+  },
+
+  /* ===== CHART GRID ===== */
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-    gap: "20px",
-    marginBottom: "25px"
+    gridTemplateColumns: window.innerWidth < 900
+      ? "1fr"
+      : "repeat(3, 1fr)",   // ✅ always 3 desktop
+    gap: "1.5em",
+    marginBottom: "2em"
   },
 
+  /* ===== FLEXIBLE SECTIONS (NO OVERLAP FIXED) ===== */
   twoCol: {
     display: "grid",
-    gridTemplateColumns: "2fr 1fr",
-    gap: "20px",
-    marginBottom: "25px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(20em, 1fr))",
+    gap: "1.5em",
+    marginBottom: "2em"
   },
 
+  /* ===== BOX ===== */
   box: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.05)"
+    background: "rgba(255,255,255,0.8)",
+    backdropFilter: "blur(0.8em)",
+    borderRadius: "1.2em",
+    padding: "1.5em",
+    border: "0.08em solid #E9D5FF",
+    boxShadow: "0 0.6em 1.8em rgba(0,0,0,0.08)",
+    transition: "all 0.3s ease",
+    width: "100%",
+    minWidth: "0",          // ⭐ prevents overlap
+    overflow: "hidden"
   },
 
+  boxTitle: {
+    fontSize: "1em",
+    fontWeight: "600",
+    marginBottom: "1em",
+    color: "#7D3C98"
+  },
+
+  /* ===== ANNOUNCEMENTS ===== */
+  announcement: {
+    padding: "0.6em 0",
+    borderBottom: "0.05em solid #eee",
+    fontSize: "0.9em"
+  },
+
+  /* ===== LEAVE USERS ===== */
+  leaveUser: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6em",
+    marginBottom: "0.6em"
+  },
+
+  avatar: {
+    width: "2.2em",
+    height: "2.2em",
+    borderRadius: "50%",
+    background: "#7D3C98",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "600",
+    fontSize: "0.85em"
+  },
+
+  /* ===== TABLE ===== */
   table: {
     width: "100%",
-    borderCollapse: "collapse"
+    borderCollapse: "collapse",
+    marginTop: "0.6em",
+    tableLayout: "fixed"
+  },
+
+  th: {
+    textAlign: "left",
+    paddingBottom: "0.6em",
+    color: "#7D3C98",
+    fontSize: "0.9em"
+  },
+
+  td: {
+    padding: "0.6em 0",
+    borderBottom: "0.05em solid #eee",
+    fontSize: "0.85em",
+    wordBreak: "break-word"
+  },
+
+  statusApproved: {
+    color: "#22c55e",
+    fontWeight: "600"
+  },
+
+  statusPending: {
+    color: "#f59e0b",
+    fontWeight: "600"
+  },
+
+  statusRejected: {
+    color: "#ef4444",
+    fontWeight: "600"
+  },
+
+  /* ===== CALENDAR ===== */
+  calendar: {
+    marginTop: "0.6em",
+    borderRadius: "0.8em",
+    overflow: "hidden"
   }
 
 };
-
 export default Dashboard;
