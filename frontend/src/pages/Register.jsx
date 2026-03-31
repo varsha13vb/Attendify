@@ -71,11 +71,18 @@ function Register() {
       const data = await registerUser(dataToSend);
 
       if (data.employee_id) {
+        const emailStatus = (data.email_status || "").toString();
+        const emailLine =
+          emailStatus === "sent" || emailStatus === "queued"
+            ? `<p style="margin-top:12px">Credentials have been <b>${emailStatus}</b> to: <b>${email}</b></p>`
+            : `<p style="margin-top:12px;color:#b03a2e">Email status: <b>${emailStatus || "unknown"}</b>. If you didn't receive mail, contact admin.</p>`;
+
         Swal.fire({
           title: "Registration Successful!",
           html: `
             <p>Your Employee ID is:</p>
             <h2 style="color:#7D3C98">${data.employee_id}</h2>
+            ${emailLine}
           `,
           icon: "success",
           confirmButtonColor: "#7D3C98",
@@ -154,7 +161,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #F5F5F5, #BDC3C7)",
+    background: "var(--bg)",
     fontFamily: "Segoe UI, sans-serif",
   },
 
@@ -165,7 +172,7 @@ const styles = {
     borderRadius: "20px",
     overflow: "hidden",
     boxShadow: "0 20px 50px rgba(0,0,0,0.1)",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "var(--surface)",
   },
 
   form: {
@@ -202,8 +209,10 @@ const styles = {
     padding: "12px",
     marginBottom: "15px",
     borderRadius: "8px",
-    border: "1px solid #BDC3C7",
+    border: "1px solid var(--border)",
     fontSize: "14px",
+    background: "var(--surface)",
+    color: "var(--text)",
   },
 
   roleWrapper: {

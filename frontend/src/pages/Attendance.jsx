@@ -87,18 +87,18 @@ const styles = {
 
   heading: {
     marginBottom: "25px",
-    color: "#000000",
+    color: "var(--primary-purple)",
   },
 
   loadingCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "var(--surface)",
     padding: "30px",
     borderRadius: "15px",
     boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
   },
 
   tableCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "var(--surface)",
     padding: "20px",
     borderRadius: "15px",
     boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
@@ -112,14 +112,14 @@ const styles = {
   },
 
   tableHeaderRow: {
-    backgroundColor: "#F8F9FB",
+    backgroundColor: "var(--surface-2)",
   },
 
   th: {
     padding: "14px",
     fontWeight: "600",
-    color: "#000000",
-    borderBottom: "2px solid #EEE",
+    color: "var(--text)",
+    borderBottom: "2px solid var(--border)",
   },
 
   tr: {
@@ -128,12 +128,12 @@ const styles = {
 
   td: {
     padding: "12px",
-    borderBottom: "1px solid #F1F5F9",
+    borderBottom: "1px solid var(--border)",
   },
 
   noData: {
     padding: "25px",
-    color: "#95A5A6",
+    color: "var(--muted-text)",
   },
 
   /* STATUS COLORS */

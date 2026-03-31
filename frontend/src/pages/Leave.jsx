@@ -251,7 +251,7 @@ cursor:"pointer"
 },
 
 tableCard:{
-background:"#fff",
+background:"var(--surface)",
 borderRadius:"12px",
 boxShadow:"0 10px 20px rgba(0,0,0,0.08)",
 padding:"20px",
@@ -266,12 +266,12 @@ textAlign:"center"
 
 th:{
 padding:"12px",
-borderBottom:"2px solid #eee"
+borderBottom:"2px solid var(--border)"
 },
 
 td:{
 padding:"10px",
-borderBottom:"1px solid #eee"
+borderBottom:"1px solid var(--border)"
 },
 
 noData:{
@@ -294,7 +294,7 @@ fontWeight:"600"
 },
 
 card:{
-background:"#fff",
+background:"var(--surface)",
 padding:"30px",
 borderRadius:"12px",
 boxShadow:"0 10px 20px rgba(0,0,0,0.08)",
@@ -315,13 +315,17 @@ gap:"10px"
 input:{
 padding:"10px",
 borderRadius:"8px",
-border:"1px solid #ddd"
+border:"1px solid var(--border)",
+background:"var(--surface)",
+color:"var(--text)"
 },
 
 textarea:{
 padding:"10px",
 borderRadius:"8px",
-border:"1px solid #ddd",
+border:"1px solid var(--border)",
+background:"var(--surface)",
+color:"var(--text)",
 minHeight:"80px"
 },
 

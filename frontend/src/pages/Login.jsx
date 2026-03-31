@@ -38,7 +38,7 @@ function Login() {
       } else {
         setError(data.message || "Invalid Employee ID or Password");
       }
-    } catch (err) {
+    } catch {
       setError("Server error. Please try again.");
     } finally {
       setLoading(false);
@@ -103,7 +103,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #F5F5F5, #BDC3C7)",
+    background: "var(--bg)",
     fontFamily: "Segoe UI, sans-serif",
   },
 
@@ -114,7 +114,7 @@ const styles = {
     borderRadius: "20px",
     overflow: "hidden",
     boxShadow: "0 20px 50px rgba(0,0,0,0.1)",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "var(--surface)",
   },
 
   form: {
@@ -164,9 +164,11 @@ const styles = {
     padding: "12px",
     marginBottom: "15px",
     borderRadius: "8px",
-    border: "1px solid #BDC3C7",
+    border: "1px solid var(--border)",
     fontSize: "14px",
     outline: "none",
+    background: "var(--surface)",
+    color: "var(--text)",
   },
 
   button: {

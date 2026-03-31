@@ -161,6 +161,21 @@ export const updateProfile = async (formData) => {
   return response.json();
 };
 
+export const getProfileMe = async () => {
+  const response = await fetch(`${BASE_URL}/api/profile/me`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch profile");
+  }
+
+  return data;
+};
+
 export const changePassword = async ({ oldPassword, newPassword }) => {
   const response = await fetch(`${BASE_URL}/api/profile/change-password`, {
     method: "PUT",
@@ -279,6 +294,65 @@ export const updatePreferences = async (preferencesData) => {
     throw new Error(data.message || "Failed to update preferences");
   }
 
+  return data;
+};
+
+/* ================= ADMIN (APPROVALS) ================= */
+
+export const getPendingLeaves = async () => {
+  const response = await fetch(`${BASE_URL}/api/admin/leaves/pending`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch pending leaves");
+  }
+  return data;
+};
+
+export const updateLeaveStatus = async (leaveId, status) => {
+  const response = await fetch(`${BASE_URL}/api/admin/leaves/${leaveId}/status`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update leave status");
+  }
+  return data;
+};
+
+export const getPendingJustifications = async () => {
+  const response = await fetch(`${BASE_URL}/api/admin/justifications/pending`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch pending justifications");
+  }
+  return data;
+};
+
+export const updateJustificationStatus = async (justificationId, status) => {
+  const response = await fetch(
+    `${BASE_URL}/api/admin/justifications/${justificationId}/status`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to update justification status");
+  }
   return data;
 };
 

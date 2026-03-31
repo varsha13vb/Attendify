@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { changePassword, getPreferences, updatePreferences } from "../services/api";
+import { applyDarkMode } from "../utils/theme";
 
 function ToggleSwitch({ checked, onChange, disabled }) {
   return (
@@ -46,6 +47,7 @@ function Preferences() {
       try {
         const data = await getPreferences();
         setSettings(data);
+        applyDarkMode(Boolean(data?.darkMode));
       } catch (err) {
         console.error(err);
       }
@@ -54,16 +56,20 @@ function Preferences() {
   }, []);
 
   const handleToggle = (key) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+    setSettings((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      if (key === "darkMode") {
+        applyDarkMode(Boolean(next.darkMode));
+      }
+      return next;
+    });
   };
 
   const handleSave = async () => {
     try {
       setLoading(true);
       await updatePreferences(settings);
+      applyDarkMode(Boolean(settings?.darkMode));
       alert("Saved successfully!");
     } catch {
       alert("Error saving");
@@ -192,7 +198,7 @@ const styles = {
   },
 
   card: {
-    background: "#fff",
+    background: "var(--surface)",
     padding: "20px",
     borderRadius: "12px",
     marginBottom: "20px",
@@ -208,6 +214,9 @@ const styles = {
     width: "100%",
     padding: "10px",
     marginTop: "10px",
+    background: "var(--surface)",
+    color: "var(--text)",
+    border: "1px solid var(--border)",
   },
 
   button: {

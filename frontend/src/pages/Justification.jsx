@@ -9,17 +9,17 @@ function Justification() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const data = await getMyJustifications();
+        setRequests(data);
+      } catch (error) {
+        console.error("Error fetching justifications:", error);
+      }
+    };
+
     fetchRequests();
   }, []);
-
-  const fetchRequests = async () => {
-    try {
-      const data = await getMyJustifications();
-      setRequests(data);
-    } catch (error) {
-      console.error("Error fetching justifications:", error);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +32,12 @@ function Justification() {
     try {
       await applyJustification(reason);
       setReason("");
-      fetchRequests();
+      try {
+        const data = await getMyJustifications();
+        setRequests(data);
+      } catch (fetchErr) {
+        console.error("Error fetching justifications:", fetchErr);
+      }
       setShowForm(false);
     } catch (error) {
       alert(error.message);
@@ -154,7 +159,7 @@ cursor:"pointer"
 },
 
 formCard:{
-background:"#FFFFFF",
+background:"var(--surface)",
 padding:"25px",
 borderRadius:"15px",
 boxShadow:"0 10px 25px rgba(0,0,0,0.08)",
@@ -172,7 +177,9 @@ textarea:{
 minHeight:"100px",
 padding:"12px",
 borderRadius:"10px",
-border:"1px solid #E5E7EB",
+border:"1px solid var(--border)",
+background:"var(--surface)",
+color:"var(--text)",
 resize:"none"
 },
 
@@ -186,7 +193,7 @@ cursor:"pointer"
 },
 
 tableCard:{
-background:"#FFFFFF",
+background:"var(--surface)",
 padding:"20px",
 borderRadius:"15px",
 boxShadow:"0 10px 25px rgba(0,0,0,0.08)",
@@ -199,24 +206,24 @@ borderCollapse:"collapse"
 },
 
 headerRow:{
-background:"#F8F9FB"
+background:"var(--surface-2)"
 },
 
 th:{
 padding:"14px",
-borderBottom:"2px solid #EEE",
+borderBottom:"2px solid var(--border)",
 textAlign:"left"
 },
 
 td:{
 padding:"12px",
-borderBottom:"1px solid #F1F5F9"
+borderBottom:"1px solid var(--border)"
 },
 
 noData:{
 padding:"20px",
 textAlign:"center",
-color:"#95A5A6"
+color:"var(--muted-text)"
 },
 
 pendingBadge:{

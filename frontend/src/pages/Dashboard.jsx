@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import {
   getAttendance,
-  getLatestLeave,
   getUpcomingHolidays,
   getNotifications,
   getLeaves
@@ -11,19 +10,18 @@ import {
 import Chart from "react-apexcharts";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import "./Dashboard.css";
 
 function Dashboard() {
 
   const [attendanceData, setAttendanceData] = useState([]);
   const [leaves, setLeaves] = useState([]);
-  const [latestLeave, setLatestLeave] = useState(null);
 
   const [holidays, setHolidays] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
   const [totalDays, setTotalDays] = useState(0);
   const [lateUsed, setLateUsed] = useState(0);
-  const [leaveStatusSeries, setLeaveStatusSeries] = useState([0,0,0]);
 
   const monthlyLimit = 45;
 
@@ -56,15 +54,6 @@ function Dashboard() {
 
           const leaveList = await getLeaves(user.employee_id);
           setLeaves(leaveList);
-
-          const latest = await getLatestLeave(user.employee_id);
-          setLatestLeave(latest);
-
-          const approved = leaveList.filter(l => l.status === "Approved").length;
-          const pending = leaveList.filter(l => l.status === "Pending").length;
-          const rejected = leaveList.filter(l => l.status === "Rejected").length;
-
-          setLeaveStatusSeries([approved, pending, rejected]);
         }
 
         setHolidays(await getUpcomingHolidays());
@@ -125,94 +114,113 @@ function Dashboard() {
     colors: ["#7D3C98","#E9D5FF"]
   };
 
-  const leaveOptions = {
-    labels: ["Approved","Pending","Rejected"],
-    colors: ["#22c55e","#f59e0b","#ef4444"]
-  };
-
-  const user = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUserRaw = localStorage.getItem("currentUser");
+  let user = null;
+  try {
+    user = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+  } catch {
+    user = null;
+  }
 
   return (
     <Layout>
 
-      <div style={styles.wrapper}>
+      <div className="dashboard">
 
         {/* HEADER */}
-        <div style={styles.header}>
-          <h2>Welcome back, {user?.name} 👋</h2>
+        <div className="dashboard__header">
+          <div>
+            <h2 className="dashboard__title">Welcome back, {user?.name} 👋</h2>
+            <div className="dashboard__subtle">Here’s your latest snapshot</div>
+          </div>
         </div>
 
         {/* SUMMARY */}
-        <div style={styles.summary}>
+        <div className="dashboard__summaryGrid">
 
-          <div style={styles.card}>
-            <h4>Total Attendance</h4>
-            <p>{totalDays}</p>
+          <div className="dashboardCard">
+            <h4 className="dashboardCard__kicker">Total Attendance</h4>
+            <p className="dashboardCard__value">{totalDays}</p>
           </div>
 
-          <div style={styles.card}>
-            <h4>Late Minutes</h4>
-            <p>{lateUsed}</p>
+          <div className="dashboardCard">
+            <h4 className="dashboardCard__kicker">Late Minutes</h4>
+            <p className="dashboardCard__value">{lateUsed}</p>
           </div>
 
-          <div style={styles.card}>
-            <h4>Remaining</h4>
-            <p>{remaining}</p>
+          <div className="dashboardCard">
+            <h4 className="dashboardCard__kicker">Remaining</h4>
+            <p className="dashboardCard__value">{remaining}</p>
           </div>
 
         </div>
 
         {/* CHARTS */}
-        <div style={styles.grid}>
+        <div className="dashboard__chartsGrid">
 
-          <div style={styles.box}>
-            <h3>Weekly Attendance</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Weekly Attendance</h3>
             <Chart options={barOptions} series={[{data: weeklyAttendance}]} type="bar" height={220}/>
           </div>
 
-          <div style={styles.box}>
-            <h3>Late Usage</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Late Usage</h3>
             <Chart options={pieOptions} series={[lateUsed, remaining]} type="pie" height={220}/>
           </div>
 
-          <div style={styles.box}>
-            <h3>Trend</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Trend</h3>
             <Chart options={lineOptions} series={[{data: weeklyAttendance}]} type="line" height={220}/>
           </div>
 
         </div>
 
         {/* ANNOUNCEMENT + WHO'S ON LEAVE */}
-        <div style={styles.twoCol}>
+        <div className="dashboard__twoCol">
 
-          <div style={styles.box}>
-            <h3>Announcements</h3>
-            {notifications.map((n,i)=>(
-              <p key={i}>📢 {n.message}</p>
-            ))}
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Announcements</h3>
+            <div className="dashboardList">
+              {notifications.length === 0 ? (
+                <div className="dashboardList__item">No announcements</div>
+              ) : (
+                notifications.map((n, i) => (
+                  <div className="dashboardList__item" key={i}>
+                    <div>📢</div>
+                    <div>{n.message}</div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
-          <div style={styles.box}>
-            <h3>Who's on Leave</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Who's on Leave</h3>
 
-            {todaysLeaves.length === 0
-              ? <p>No one on leave</p>
-              : todaysLeaves.map((l,i)=>(
-                <p key={i}>👤 {l.leave_type}</p>
-              ))
-            }
+            <div className="dashboardList">
+              {todaysLeaves.length === 0 ? (
+                <div className="dashboardList__item">No one on leave</div>
+              ) : (
+                todaysLeaves.map((l, i) => (
+                  <div className="dashboardList__item" key={i}>
+                    <div>👤</div>
+                    <div>{l.leave_type}</div>
+                  </div>
+                ))
+              )}
+            </div>
 
           </div>
 
         </div>
 
         {/* LEAVE TABLE + CALENDAR */}
-        <div style={styles.twoCol}>
+        <div className="dashboard__twoCol">
 
-          <div style={styles.box}>
-            <h3>Leave Requests</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Leave Requests</h3>
 
-            <table style={styles.table}>
+            <table className="dashboardTable">
               <thead>
                 <tr>
                   <th>From</th>
@@ -236,15 +244,21 @@ function Dashboard() {
 
           </div>
 
-          <div style={styles.box}>
-            <h3>Calendar</h3>
+          <div className="dashboardBox">
+            <h3 className="dashboardBox__title">Calendar</h3>
 
             <Calendar
+              calendarType="gregory"
+              showNeighboringMonth={false}
+              showFixedNumberOfWeeks={false}
               tileClassName={({date})=>{
+                const classes = [];
+                if (date.getDay() === 0) classes.push("calendar-sunday");
                 const h = holidays.find(
                   d=> new Date(d.date).toDateString() === date.toDateString()
                 );
-                return h ? "holiday" : null;
+                if (h) classes.push("holiday");
+                return classes.length ? classes.join(" ") : null;
               }}
             />
 
@@ -257,67 +271,5 @@ function Dashboard() {
     </Layout>
   );
 }
-
-/* ===== STYLES ===== */
-
-const styles = {
-
-  wrapper: { width: "100%" },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: "20px"
-  },
-
-  btn: {
-    background: "#E91E63",
-    color: "#fff",
-    border: "none",
-    padding: "10px 15px",
-    borderRadius: "8px"
-  },
-
-  summary: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
-    gap: "15px",
-    marginBottom: "25px"
-  },
-
-  card: {
-    background: "#F3E8FF",
-    padding: "20px",
-    borderRadius: "12px",
-    textAlign: "center"
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
-    gap: "20px",
-    marginBottom: "25px"
-  },
-
-  twoCol: {
-    display: "grid",
-    gridTemplateColumns: "2fr 1fr",
-    gap: "20px",
-    marginBottom: "25px"
-  },
-
-  box: {
-    background: "#fff",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.05)"
-  },
-
-  table: {
-    width: "100%",
-    borderCollapse: "collapse"
-  }
-
-};
 
 export default Dashboard;
