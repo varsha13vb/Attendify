@@ -272,4 +272,66 @@ function Dashboard() {
   );
 }
 
+/* ===== STYLES ===== */
+
+const styles = {
+
+  wrapper: { width: "100%" },
+
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "20px"
+  },
+
+  btn: {
+    background: "#E91E63",
+    color: "#fff",
+    border: "none",
+    padding: "10px 15px",
+    borderRadius: "8px"
+  },
+
+  summary: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+    gap: "15px",
+    marginBottom: "25px"
+  },
+
+  card: {
+    background: "#F3E8FF",
+    padding: "20px",
+    borderRadius: "12px",
+    textAlign: "center"
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))",
+    gap: "20px",
+    marginBottom: "25px"
+  },
+
+  twoCol: {
+    display: "grid",
+    gridTemplateColumns: "2fr 1fr",
+    gap: "20px",
+    marginBottom: "25px"
+  },
+
+  box: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.05)"
+  },
+
+  table: {
+    width: "100%",
+    borderCollapse: "collapse"
+  }
+
+};
+
 export default Dashboard;
