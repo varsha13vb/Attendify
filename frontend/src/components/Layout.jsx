@@ -18,18 +18,21 @@ const styles = {
   container: {
     display: "flex",
     minHeight: "100vh",
-    background: "#F5F5F5",
+    background: "var(--bg)",
   },
   main: {
     flex: 1,
     display: "flex",
     flexDirection: "column",
     minWidth: 0,
+    background: "var(--bg)",
   },
   content: {
     flex: 1,
     padding: "20px",
     overflow: "auto",
+    background: "var(--bg)",
+    color: "var(--text)",
   },
 };
 

@@ -4,14 +4,18 @@ import { updateProfile } from "../services/api";
 
 function Profile() {
 
-  const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+  let storedUser = null;
+  try {
+    storedUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  } catch {
+    storedUser = null;
+  }
 
   const [name, setName] = useState(storedUser?.name || "");
   const [email, setEmail] = useState(storedUser?.email || "");
   const [dob, setDob] = useState(storedUser?.dob || "");
 
-  const [department, setDepartment] = useState(storedUser?.department || "");
-  const [joiningDate, setJoiningDate] = useState(storedUser?.joining_date || "");
+  const joiningDate = storedUser?.created_at ? String(storedUser.created_at).slice(0, 10) : "";
 
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(
@@ -41,8 +45,6 @@ function Profile() {
       formData.append("name", name);
       formData.append("email", email);
       formData.append("dob", dob);
-      formData.append("department", department);
-      formData.append("joining_date", joiningDate);
 
       if (imageFile) {
         formData.append("profile_image", imageFile);
@@ -52,12 +54,11 @@ function Profile() {
 
       const updatedUser = {
         ...storedUser,
-        name,
-        email,
-        dob,
-        department,
-        joining_date: joiningDate,
-        profile_image: response.profile_image,
+        name: response.name ?? name,
+        email: response.email ?? email,
+        dob: response.dob ?? dob,
+        created_at: response.created_at ?? storedUser?.created_at,
+        profile_image: response.profile_image ?? storedUser?.profile_image,
       };
 
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
@@ -71,7 +72,7 @@ function Profile() {
 
       alert("Profile updated successfully!");
 
-    } catch (error) {
+    } catch {
       alert("Failed to update profile");
     } finally {
       setLoading(false);
@@ -103,7 +104,7 @@ function Profile() {
 
           <h3>{name}</h3>
           <p>{email}</p>
-          <p style={{ color: "#777" }}>{storedUser?.role}</p>
+          <p style={{ color: "var(--muted-text)" }}>{storedUser?.role}</p>
 
         </div>
 
@@ -138,12 +139,12 @@ function Profile() {
 
             <div style={styles.field}>
               <label>Department</label>
-              <input value={department} onChange={(e)=>setDepartment(e.target.value)} style={styles.input}/>
+              <input value={storedUser?.department || ""} disabled style={styles.inputDisabled}/>
             </div>
 
             <div style={styles.field}>
               <label>Joining Date</label>
-              <input type="date" value={joiningDate} onChange={(e)=>setJoiningDate(e.target.value)} style={styles.input}/>
+              <input type="date" value={joiningDate} disabled style={styles.inputDisabled}/>
             </div>
 
             <div style={styles.field}>
@@ -183,7 +184,7 @@ const styles = {
   },
 
   leftCard: {
-    background: "#fff",
+    background: "var(--surface)",
     padding: "25px",
     borderRadius: "16px",
     textAlign: "center",
@@ -235,7 +236,7 @@ const styles = {
   },
 
   card: {
-    background: "#fff",
+    background: "var(--surface)",
     padding: "20px",
     borderRadius: "16px",
   },
@@ -254,14 +255,17 @@ const styles = {
   input: {
     padding: "8px",
     borderRadius: "6px",
-    border: "1px solid #ccc",
+    border: "1px solid var(--border)",
+    background: "var(--surface)",
+    color: "var(--text)",
   },
 
   inputDisabled: {
     padding: "8px",
     borderRadius: "6px",
-    background: "#eee",
-    border: "none",
+    background: "var(--surface-2)",
+    border: "1px solid var(--border)",
+    color: "var(--text)",
   },
 
   button: {

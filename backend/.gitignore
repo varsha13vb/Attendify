@@ -1,0 +1,27 @@
+# ================= ENV =================
+.env
+.env.*
+*.env
+!.env.example
+
+# ================= PYTHON =================
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ================= VENV =================
+.venv/
+venv/
+.env/
+
+# ================= DATABASE =================
+*.db
+*.sqlite3
+
+# ================= UPLOADS / RUNTIME =================
+uploads/
+instance/
+

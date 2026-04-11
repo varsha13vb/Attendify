@@ -94,50 +94,63 @@ def register():
         db.session.rollback()
         return jsonify({"message": "Failed to register user"}), 500
 
-    if role != "employee":
-        mail_status = "skipped"
-    else:
-        try:
-            if not current_app.config.get("SEND_WELCOME_EMAIL", True):
-                mail_status = "disabled"
-                raise StopIteration()
+    mail_status = "skipped"
 
-            sender = (
-                current_app.config.get("MAIL_DEFAULT_SENDER")
-                or current_app.config.get("MAIL_USERNAME")
-                or os.getenv("MAIL_USERNAME")
-            )
-            if not current_app.config.get("MAIL_SERVER") or not sender:
-                mail_status = "skipped"
-                raise StopIteration()
+    try:
+        if not current_app.config.get("SEND_WELCOME_EMAIL", True):
+            mail_status = "disabled"
+            raise StopIteration()
 
-            msg = Message(
-                subject="Welcome to Attendify",
-                sender=sender,
-                recipients=[email],
-            )
+        sender = (
+            current_app.config.get("MAIL_DEFAULT_SENDER")
+            or current_app.config.get("MAIL_USERNAME")
+            or os.getenv("MAIL_USERNAME")
+        )
+        if not current_app.config.get("MAIL_SERVER") or not sender:
+            mail_status = "skipped"
+            raise StopIteration()
 
-            msg.html = f"""
-            <h2>Welcome to Attendify</h2>
-            <p>Hello <b>{name}</b>,</p>
-            <p>Your Employee ID is:</p>
-            <h3 style=\"color:#7D3C98\">{new_employee_id}</h3>
-            <p>Role: {role}</p>
-            <p>Please keep this ID safe for login.</p>
-            """
+        msg = Message(
+            subject="Your Attendify account credentials",
+            sender=sender,
+            recipients=[email],
+        )
 
-            if current_app.config.get("WELCOME_EMAIL_ASYNC", True):
-                send_message_async(current_app._get_current_object(), msg)
-                mail_status = "queued"
-            else:
-                mail.send(msg)
-                mail_status = "sent"
+        msg.body = (
+            "Welcome to Attendify!\n\n"
+            f"Name: {name}\n"
+            f"Employee ID: {new_employee_id}\n"
+            f"Role: {role}\n"
+            f"Email: {email}\n"
+            f"Password: {password}\n\n"
+            "Please change your password after your first login."
+        )
 
-        except StopIteration:
-            pass
-        except Exception:
-            logging.exception("Failed to send welcome email to %s", email)
-            mail_status = "failed"
+        msg.html = f"""
+        <h2>Welcome to Attendify</h2>
+        <p>Hello <b>{name}</b>,</p>
+        <p>Your account has been created with the following credentials:</p>
+        <ul>
+          <li><b>Employee ID:</b> <span style="color:#7D3C98">{new_employee_id}</span></li>
+          <li><b>Role:</b> {role}</li>
+          <li><b>Email:</b> {email}</li>
+          <li><b>Password:</b> {password}</li>
+        </ul>
+        <p><i>Recommendation:</i> change your password after your first login.</p>
+        """
+
+        if current_app.config.get("WELCOME_EMAIL_ASYNC", True):
+            send_message_async(current_app._get_current_object(), msg)
+            mail_status = "queued"
+        else:
+            mail.send(msg)
+            mail_status = "sent"
+
+    except StopIteration:
+        pass
+    except Exception:
+        logging.exception("Failed to send welcome email to %s", email)
+        mail_status = "failed"
 
     response = {
         "message": "User registered successfully",
@@ -179,7 +192,9 @@ def login():
             "employee_id": user.employee_id,
             "name": user.name,
             "email": user.email,
+            "dob": user.dob.isoformat() if user.dob else None,
             "role": user.role,
             "profile_image": user.profile_image,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
         }
     }), 200

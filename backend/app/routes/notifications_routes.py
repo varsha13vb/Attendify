@@ -21,10 +21,11 @@ def get_notifications():
 
     return jsonify([
         {
+            "id": n.id,
             "message": n.message,
+            "event_key": n.event_key,
             "is_read": bool(n.is_read),
             "created_at": n.created_at.isoformat() if n.created_at else None,
         }
         for n in notifications
     ]), 200
-

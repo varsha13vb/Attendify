@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 
 admin_bp = Blueprint('admin', __name__)
 
+<<<<<<< HEAD
 # GET all employees
 @admin_bp.route('/employees', methods=['GET'])
 @jwt_required()
@@ -16,7 +17,6 @@ def get_employees():
 
         for emp in employees:
             output.append({
-                "id": emp.id,
                 "name": emp.name,
                 "email": emp.email,
                 "employee_id": emp.employee_id,
@@ -108,3 +108,14 @@ def update_employee(user_id):
     db.session.commit()
 
     return jsonify({"message": "Employee updated successfully"}), 200
+=======
+
+def _get_admin_user():
+    employee_id = get_jwt_identity()
+    user = User.query.filter_by(employee_id=employee_id).first()
+    if not user or user.role != "admin":
+        return None
+    return user
+
+
+@admin_bp.route("/", methods=["GET"])

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import {
   getAttendance,
-  getLatestLeave,
   getUpcomingHolidays,
   getNotifications,
   getLeaves
@@ -11,18 +10,26 @@ import {
 import Chart from "react-apexcharts";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [attendanceData, setAttendanceData] = useState([]);
   const [leaves, setLeaves] = useState([]);
+<<<<<<< HEAD
   const [latestLeave, setLatestLeave] = useState(null);
+=======
+
+>>>>>>> ed07d51f7158474a4ed9512f2056d451bca61b8f
   const [holidays, setHolidays] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [totalDays, setTotalDays] = useState(0);
   const [lateUsed, setLateUsed] = useState(0);
+<<<<<<< HEAD
   
   // Hover states for top cards
   const [hoveredCard, setHoveredCard] = useState(null);
+=======
+>>>>>>> ed07d51f7158474a4ed9512f2056d451bca61b8f
 
   const monthlyLimit = 45;
 
@@ -85,6 +92,7 @@ function Dashboard() {
   const barOptions = { ...commonOptions, xaxis: { categories: weekDays } };
   const lineOptions = { ...commonOptions, xaxis: { categories: weekDays } };
   const pieOptions = {
+<<<<<<< HEAD
     ...commonOptions,
     labels: ["Used", "Remaining"],
     colors: ["#7c3aed", "#ddd6fe"],
@@ -92,6 +100,19 @@ function Dashboard() {
   };
 
   const user = JSON.parse(localStorage.getItem("currentUser"));
+=======
+    labels: ["Used","Remaining"],
+    colors: ["#7D3C98","#E9D5FF"]
+  };
+
+  const currentUserRaw = localStorage.getItem("currentUser");
+  let user = null;
+  try {
+    user = currentUserRaw ? JSON.parse(currentUserRaw) : null;
+  } catch {
+    user = null;
+  }
+>>>>>>> ed07d51f7158474a4ed9512f2056d451bca61b8f
 
   const SummaryCard = ({ id, title, value }) => (
     <div 
@@ -199,6 +220,8 @@ function Dashboard() {
     </Layout>
   );
 }
+
+/* ===== STYLES ===== */
 
 const styles = {
   wrapper: {

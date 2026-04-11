@@ -161,6 +161,21 @@ export const updateProfile = async (formData) => {
   return response.json();
 };
 
+export const getProfileMe = async () => {
+  const response = await fetch(`${BASE_URL}/api/profile/me`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch profile");
+  }
+
+  return data;
+};
+
 export const changePassword = async ({ oldPassword, newPassword }) => {
   const response = await fetch(`${BASE_URL}/api/profile/change-password`, {
     method: "PUT",

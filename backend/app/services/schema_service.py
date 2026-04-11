@@ -95,3 +95,28 @@ def ensure_schema() -> None:
         except Exception:
             logging.exception("Failed creating holidays table")
 
+    if "notifications" in table_names:
+        try:
+            existing_columns = {col["name"] for col in inspector.get_columns("notifications")}
+        except Exception:
+            logging.exception("Failed to inspect notifications table columns")
+            existing_columns = set()
+
+        notification_columns = {
+            "event_key": "VARCHAR(140) NULL",
+        }
+
+        missing = [name for name in notification_columns.keys() if name not in existing_columns]
+        if missing:
+            ddls: list[str] = []
+            for col_name in missing:
+                col_def = notification_columns[col_name]
+                ddls.append(f"ALTER TABLE notifications ADD COLUMN {col_name} {col_def}")
+
+            try:
+                with engine.begin() as conn:
+                    for ddl in ddls:
+                        conn.execute(text(ddl))
+                logging.info("Added missing notifications columns: %s", ", ".join(missing))
+            except Exception:
+                logging.exception("Failed adding missing notifications columns: %s", ", ".join(missing))
