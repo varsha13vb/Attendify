@@ -6,7 +6,6 @@ from flask_jwt_extended import jwt_required
 
 admin_bp = Blueprint('admin', __name__)
 
-<<<<<<< HEAD
 # GET all employees
 @admin_bp.route('/employees', methods=['GET'])
 @jwt_required()
@@ -30,13 +29,12 @@ def get_employees():
         return jsonify({"message": str(e)}), 500
 
 
-# ✅ SINGLE POST API (FIXED)
+# POST - Add employee
 @admin_bp.route('/employees', methods=['POST'])
 @jwt_required()
 def add_employee():
     data = request.get_json()
 
-    # Validation
     if User.query.filter_by(employee_id=data.get('employee_id')).first():
         return jsonify({"message": "Employee ID already exists"}), 400
 
@@ -49,13 +47,11 @@ def add_employee():
             role='employee'
         )
 
-        # ✅ password = dob
         new_user.set_password(data.get('password'))
 
         db.session.add(new_user)
         db.session.commit()
 
-        # ✅ SEND EMAIL
         msg = Message(
             subject="Your Account Details",
             recipients=[data.get('email')]
@@ -108,14 +104,3 @@ def update_employee(user_id):
     db.session.commit()
 
     return jsonify({"message": "Employee updated successfully"}), 200
-=======
-
-def _get_admin_user():
-    employee_id = get_jwt_identity()
-    user = User.query.filter_by(employee_id=employee_id).first()
-    if not user or user.role != "admin":
-        return None
-    return user
-
-
-@admin_bp.route("/", methods=["GET"])
