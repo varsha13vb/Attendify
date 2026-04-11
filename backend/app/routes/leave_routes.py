@@ -108,3 +108,55 @@ def get_my_leaves(employee_id):
         })
 
     return jsonify(result), 200
+
+@leave_bp.route("/all", methods=["GET"])
+@jwt_required()
+def get_all_leaves():
+    # Join Leave with User to get employee names
+    leaves = db.session.query(Leave, User).join(User, Leave.employee_id == User.employee_id)\
+        .order_by(desc(Leave.applied_on)).all()
+
+    result = []
+    for leave, user in leaves:
+        result.append({
+            "id": leave.id,
+            "employee_id": leave.employee_id,
+            "name": user.name,
+            "leave_type": leave.leave_type,
+            "from_date": leave.from_date.strftime("%Y-%m-%d"),
+            "to_date": leave.to_date.strftime("%Y-%m-%d"),
+            "reason": leave.reason,
+            "status": leave.status,
+            "applied_on": leave.applied_on.strftime("%Y-%m-%d")
+        })
+
+    return jsonify(result), 200
+
+@leave_bp.route("/<int:leave_id>/approve", methods=["PUT"])
+@jwt_required()
+def approve_leave(leave_id):
+    leave = Leave.query.get_or_404(leave_id)
+    leave.status = "Approved"
+    db.session.commit()
+    return jsonify({"message": "Leave approved"}), 200
+
+@leave_bp.route("/<int:leave_id>/reject", methods=["PUT"])
+@jwt_required()
+def reject_leave(leave_id):
+    leave = Leave.query.get_or_404(leave_id)
+    leave.status = "Rejected"
+    db.session.commit()
+    return jsonify({"message": "Leave rejected"}), 200
+
+# @leave_bp.route('/<int:leave_id>/<action>', methods=['PUT'])
+# @jwt_required()
+# def manage_leave(leave_id, action):
+#     leave = Leave.query.get_or_404(leave_id)
+#     data = request.json
+#     if action == 'approve':
+#         leave.status = 'Approved'
+#     elif action == 'reject':
+#         leave.status = 'Rejected'
+#         leave.admin_response = data.get('admin_response') # Ensure column exists in DB
+#     db.session.commit()
+#     return jsonify({"message": f"Leave {action}ed successfully"}), 200

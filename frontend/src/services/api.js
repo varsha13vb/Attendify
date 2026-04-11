@@ -282,3 +282,25 @@ export const updatePreferences = async (preferencesData) => {
   return data;
 };
 
+/* ================= ADMIN MANAGEMENT ================= */
+
+export const getAllEmployees = async () => {
+  const response = await fetch(`${BASE_URL}/api/admin/employees`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to fetch employees");
+  return data;
+};
+
+export const addEmployee = async (employeeData) => {
+  const response = await fetch(`${BASE_URL}/api/admin/employees`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(employeeData),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Failed to add employee");
+  return data;
+};

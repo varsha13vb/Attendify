@@ -141,6 +141,9 @@ def create_app() -> Flask:
     from app.routes.preferences_routes import preferences_bp
     from app.routes.profile_routes import profile_bp
     from app.routes.wallet_routes import wallet_bp
+    from app.routes.policies import policy_bp
+
+
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(attendance_bp, url_prefix="/api/attendance")
@@ -152,6 +155,7 @@ def create_app() -> Flask:
     app.register_blueprint(preferences_bp, url_prefix="/api/preferences")
     app.register_blueprint(holidays_bp, url_prefix="/api/holidays")
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
+    app.register_blueprint(policy_bp, url_prefix="/api")
 
     @app.route("/api/health", methods=["GET"])
     def health():
