@@ -175,7 +175,7 @@ const styles = {
     pillSearch: { width: '100%', padding: '14px 25px', borderRadius: '50px', border: '1px solid #ddd', fontSize: '15px', outline: 'none' },
     card: { background: '#fff', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' },
     table: { width: '100%', borderCollapse: 'collapse' },
-    th: { textAlign: 'left', padding: '18px', background: '#F8F9FA', color: '#7D3C98', fontSize: '12px', textTransform: 'uppercase' },
+    th: { textAlign: 'left', padding: '18px', background: '#F8F9FA', color:"var(--text)" , fontSize: '12px', textTransform: 'uppercase' },
     td: { padding: '18px', borderBottom: '1px solid #eee' },
     userCell: { display: 'flex', alignItems: 'center', gap: '15px' },
     avatar: { width: '40px', height: '40px', background: '#E9D5FF', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#7D3C98' },

@@ -1,4 +1,4 @@
-.dashboard {
+/* .dashboard {
   width: 100%;
 }
 
@@ -170,7 +170,7 @@
   background: color-mix(in srgb, var(--surface) 85%, var(--surface-2));
 }
 
-/* Subtle load-in for grid items */
+/* Subtle load-in for grid items 
 @media (prefers-reduced-motion: no-preference) {
   .dashboard__summaryGrid > *,
   .dashboard__chartsGrid > *,
@@ -200,7 +200,7 @@
   }
 }
 
-/* Calendar tune-ups (react-calendar) */
+/* Calendar tune-ups (react-calendar) 
 .dashboard .react-calendar {
   width: 100%;
   border: 1px solid var(--border);
@@ -252,4 +252,4 @@
 .dashboard .react-calendar__tile.calendar-sunday {
   color: #dc2626;
   font-weight: 700;
-}
+} */

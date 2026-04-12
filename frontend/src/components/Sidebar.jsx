@@ -32,9 +32,13 @@ function Sidebar() {
   return (
     <div style={styles.sidebar}>
 
-      {/* Logo ONLY here */}
-      <h2 style={styles.logo}>Attendify</h2>
-
+        <div style={styles.logoContainer}>
+        <img 
+          src="/images/Horizontal logo.png"
+          alt="Attendify"
+          style={styles.logoImg}
+        />
+       </div>
       <div style={styles.menu}>
         {menu.map((item, index) => {
 
@@ -93,14 +97,34 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     color: "#fff",
+    position: "fixed",
   },
+logoContainer: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "rgba(255,255,255,0.08)",   // subtle glass effect
+  padding: "12px",
+  borderRadius: "12px",
+  margin: "10px",
+  marginBottom: "30px",
+  backdropFilter: "blur(8px)",            // 🔥 premium look
+  border: "1px solid rgba(255,255,255,0.1)",
+},
 
-  logo: {
-    textAlign: "center",
-    marginBottom: "30px",
-    fontSize: "22px",
-    fontWeight: "600",
-  },
+logoImg: {
+  width: "130px",
+  height: "auto",
+  objectFit: "contain",
+  filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))", // glow
+},
+
+logo: {
+  fontSize: "18px",
+  fontWeight: "600",
+  color: "#fff",
+  letterSpacing: "0.5px",
+},
 
   menu: {
     display: "flex",

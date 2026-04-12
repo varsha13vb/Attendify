@@ -30,7 +30,7 @@ function Justification() {
     }
 
     try {
-      await applyJustification(reason);
+      await applyJustification(reason, Number(0));
       setReason("");
       try {
         const data = await getMyJustifications();

@@ -10,7 +10,7 @@ import {
 import Chart from "react-apexcharts";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "./Dashboard.css";
+// import "./Dashboard.css";
 
 function Dashboard() {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -312,7 +312,9 @@ const styles = {
   },
   approved: { color: "#059669", fontWeight: "600" },
   pending: { color: "#d97706", fontWeight: "600" },
-  rejected: { color: "#dc2626", fontWeight: "600" }
+  rejected: { color: "#dc2626", fontWeight: "600" },
+
+  
 };
 
 export default Dashboard;

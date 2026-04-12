@@ -5,6 +5,7 @@ import LeaveManagement from "./admin/LeaveManagement";
 import AttendanceManagement from "./admin/AttendanceManagement";
 import PolicyManagement from "./admin/PolicyManagement";
 import SystemConfig from "./admin/SystemConfig";
+import JustificationManagement from "./admin/JustificationManagement";
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("Employee Management");
@@ -16,7 +17,7 @@ const AdminPanel = () => {
     setTimeout(() => setNotify({ show: false, msg: "", type: "" }), 3000);
   };
 
-  const tabs = ["Employee Management", "Leave Management", "Attendance Tracking", "Policy Management", "System Configuration"];
+  const tabs = ["Employee Management", "Leave Management", "Justification Management", "Attendance Tracking", "Policy Management", "System Configuration"];
 
   return (
     <Layout>
@@ -47,9 +48,10 @@ const AdminPanel = () => {
         <div style={styles.contentArea}>
           {activeTab === "Employee Management" && <EmployeeManagement showNotify={showNotify} />}
           {activeTab === "Leave Management" && <LeaveManagement showNotify={showNotify} />}
+          {activeTab === "Justification Management" && <JustificationManagement showNotify={showNotify}/>}
           {activeTab === "Attendance Tracking" && <AttendanceManagement showNotify={showNotify}/>}
           {activeTab === "Policy Management" && <PolicyManagement showNotify={showNotify}/>}
-          {activeTab === "System Config" && <SystemConfig showNotify={showNotify}/>} 
+          {activeTab === "System Configuration" && <SystemConfig />}
         </div>
       </div>
     </Layout>

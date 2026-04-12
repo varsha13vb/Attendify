@@ -112,16 +112,26 @@ export const getLatestLeave = async (employeeId) => {
 
 /* ================= JUSTIFICATION ================= */
 
-export const applyJustification = async (reason) => {
+export const applyJustification = async (reason, lateMinutes = 0) => {
   const response = await fetch(`${BASE_URL}/api/justification/apply`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify({ reason })
+    body: JSON.stringify({
+      reason,
+      late_minutes: lateMinutes
+    })
   });
 
-  const data = await response.json();
+  let data;
+
+  try {
+    data = await response.json();
+  } catch (err) {
+    throw new Error("Server returned invalid response (not JSON)");
+  }
 
   if (!response.ok) {
+    console.error("BACKEND ERROR:", data);
     throw new Error(data.message || "Failed to submit justification");
   }
 
