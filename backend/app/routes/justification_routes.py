@@ -1,12 +1,64 @@
-from flask import Blueprint, request, jsonify
+import logging
+import os
+
+from flask import Blueprint, current_app, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+from flask_mail import Message
 
 from app import db
 from app.models.justification_model import Justification
 from app.models.user_model import User
+from app.services.email_service import send_message_async
 
 justification_bp = Blueprint("justification", __name__)
+
+
+def _send_justification_status_email(*, employee: User, justification: Justification) -> None:
+    if not current_app.config.get("SEND_JUSTIFICATION_STATUS_EMAIL", True):
+        return
+
+    sender = (
+        current_app.config.get("MAIL_DEFAULT_SENDER")
+        or current_app.config.get("MAIL_USERNAME")
+        or os.getenv("MAIL_USERNAME")
+    )
+    if not current_app.config.get("MAIL_SERVER") or not sender or not employee.email:
+        return
+
+    status = (justification.status or "").strip()
+    response = (justification.admin_response or "").strip()
+
+    subject = f"Justification Request {status}"
+
+    msg = Message(
+        subject=subject,
+        sender=sender,
+        recipients=[employee.email],
+    )
+
+    date_str = justification.date.strftime("%Y-%m-%d") if justification.date else ""
+    msg.body = (
+        f"Hello {employee.name},\n\n"
+        f"Your justification request has been {status.lower()}.\n\n"
+        f"Employee ID: {employee.employee_id}\n"
+        + (f"Date: {date_str}\n" if date_str else "")
+        + (f"Late Minutes: {justification.late_minutes}\n" if justification.late_minutes is not None else "")
+        + f"Reason: {justification.reason}\n"
+        + (f"\nAdmin Response: {response}\n" if response else "")
+        + "\nRegards,\nAttendify Admin\n"
+    )
+
+    try:
+        if current_app.config.get("JUSTIFICATION_STATUS_EMAIL_ASYNC", True):
+            send_message_async(current_app._get_current_object(), msg)
+        else:
+            from app import mail
+
+            mail.send(msg)
+    except Exception:
+        logging.exception("Failed sending justification status email to %s", employee.email)
+
 
 # ================= APPLY JUSTIFICATION =================
 @justification_bp.route("/apply", methods=["POST"])
@@ -135,6 +187,9 @@ def handle_admin_action(jid, action):
 
     try:
         db.session.commit()
+        employee = User.query.filter_by(employee_id=record.employee_id).first()
+        if employee:
+            _send_justification_status_email(employee=employee, justification=record)
         return jsonify({"message": f"Justification {action}d successfully"}), 200
     except Exception:
         db.session.rollback()

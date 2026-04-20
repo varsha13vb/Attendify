@@ -18,6 +18,49 @@ mail = Mail()
 migrate = Migrate()
 
 
+def _truthy_env(name: str, default: bool = False) -> bool:
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _csv_env(name: str) -> list[str]:
+    raw_value = (os.getenv(name) or "").strip()
+    if not raw_value:
+        return []
+    return [item.strip() for item in raw_value.split(",") if item.strip()]
+
+
+def _configure_cors(app: Flask, *, is_dev: bool) -> None:
+    allow_all = _truthy_env("CORS_ALLOW_ALL", default=is_dev)
+
+    cors_kwargs = {
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "max_age": 86400,
+    }
+
+    if allow_all:
+        if not is_dev:
+            logging.warning("CORS_ALLOW_ALL is enabled outside development; do not use this in production.")
+        CORS(
+            app,
+            resources={r"/*": {"origins": "*"}},
+            send_wildcard=True,
+            **cors_kwargs,
+        )
+        return
+
+    configured_origins = _csv_env("CORS_ORIGINS")
+    if configured_origins:
+        CORS(app, resources={r"/api/*": {"origins": configured_origins}}, **cors_kwargs)
+        return
+
+    # Backwards-compatible default: allow any origin for API routes (useful for local dev).
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, send_wildcard=True, **cors_kwargs)
+
+
 def _resolve_database_uri(base_dir: Path) -> str:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
@@ -105,12 +148,20 @@ def create_app() -> Flask:
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_USERNAME")
 
+    # Email notifications (leave approvals/rejections).
+    app.config["SEND_LEAVE_STATUS_EMAIL"] = os.getenv("SEND_LEAVE_STATUS_EMAIL", "true").lower() == "true"
+    app.config["LEAVE_STATUS_EMAIL_ASYNC"] = os.getenv("LEAVE_STATUS_EMAIL_ASYNC", "true").lower() == "true"
+
+    # Email notifications (justification approvals/rejections).
+    app.config["SEND_JUSTIFICATION_STATUS_EMAIL"] = os.getenv("SEND_JUSTIFICATION_STATUS_EMAIL", "true").lower() == "true"
+    app.config["JUSTIFICATION_STATUS_EMAIL_ASYNC"] = os.getenv("JUSTIFICATION_STATUS_EMAIL_ASYNC", "true").lower() == "true"
+
     db.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
 
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    _configure_cors(app, is_dev=is_dev)
 
     # Import models so SQLAlchemy/Alembic sees them.
     from app.models.attendance_model import Attendance  # noqa: F401
@@ -119,6 +170,7 @@ def create_app() -> Flask:
     from app.models.leave_model import Leave  # noqa: F401
     from app.models.late_wallet_model import LateWallet  # noqa: F401
     from app.models.notification_model import Notification  # noqa: F401
+    from app.models.system_config_model import SystemConfig  # noqa: F401
     from app.models.user_model import User  # noqa: F401
 
     # Ensure existing MySQL schemas have required columns/tables (dev convenience).
@@ -138,6 +190,7 @@ def create_app() -> Flask:
     from app.routes.justification_routes import justification_bp
     from app.routes.leave_routes import leave_bp
     from app.routes.notifications_routes import notifications_bp
+    from app.routes.config_routes import config_bp
     from app.routes.preferences_routes import preferences_bp
     from app.routes.profile_routes import profile_bp
     from app.routes.wallet_routes import wallet_bp
@@ -156,6 +209,7 @@ def create_app() -> Flask:
     app.register_blueprint(holidays_bp, url_prefix="/api/holidays")
     app.register_blueprint(notifications_bp, url_prefix="/api/notifications")
     app.register_blueprint(policy_bp, url_prefix="/api")
+    app.register_blueprint(config_bp, url_prefix="/api/config")
 
     @app.route("/api/health", methods=["GET"])
     def health():

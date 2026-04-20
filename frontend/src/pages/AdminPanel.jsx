@@ -51,7 +51,7 @@ const AdminPanel = () => {
           {activeTab === "Justification Management" && <JustificationManagement showNotify={showNotify}/>}
           {activeTab === "Attendance Tracking" && <AttendanceManagement showNotify={showNotify}/>}
           {activeTab === "Policy Management" && <PolicyManagement showNotify={showNotify}/>}
-          {activeTab === "System Configuration" && <SystemConfig />}
+          {activeTab === "System Configuration" && <SystemConfig showNotify={showNotify} />}
         </div>
       </div>
     </Layout>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import { changePassword, getPreferences, updatePreferences } from "../services/api";
-import { applyDarkMode } from "../utils/theme";
 
 function ToggleSwitch({ checked, onChange, disabled }) {
   return (
@@ -46,8 +45,7 @@ function Preferences() {
     const fetchData = async () => {
       try {
         const data = await getPreferences();
-        setSettings(data);
-        applyDarkMode(Boolean(data?.darkMode));
+        setSettings((prev) => ({ ...prev, ...(data || {}) }));
       } catch (err) {
         console.error(err);
       }
@@ -57,11 +55,7 @@ function Preferences() {
 
   const handleToggle = (key) => {
     setSettings((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      if (key === "darkMode") {
-        applyDarkMode(Boolean(next.darkMode));
-      }
-      return next;
+      return { ...prev, [key]: !prev[key] };
     });
   };
 
@@ -69,7 +63,6 @@ function Preferences() {
     try {
       setLoading(true);
       await updatePreferences(settings);
-      applyDarkMode(Boolean(settings?.darkMode));
       alert("Saved successfully!");
     } catch {
       alert("Error saving");
@@ -124,22 +117,6 @@ function Preferences() {
               />
             </div>
           ))}
-
-        </div>
-
-        {/* DARK MODE */}
-        <div style={styles.card}>
-          <h3>Appearance</h3>
-
-          <div style={styles.row}>
-            <span>Dark Mode</span>
-
-            <ToggleSwitch
-              checked={Boolean(settings.darkMode)}
-              onChange={() => handleToggle("darkMode")}
-              disabled={loading}
-            />
-          </div>
 
         </div>
 

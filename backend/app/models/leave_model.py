@@ -14,4 +14,5 @@ class Leave(db.Model):
     to_date = db.Column(db.Date, nullable=False)
     reason = db.Column(db.Text, nullable=False)
     status = db.Column(db.Enum("Pending","Approved","Rejected"), default="Pending")
+    admin_response = db.Column(db.Text, nullable=True)
     applied_on = db.Column(db.TIMESTAMP, server_default=db.func.current_timestamp())

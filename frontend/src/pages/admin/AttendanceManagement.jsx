@@ -1,114 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, UserCheck, AlertTriangle, UserX, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 const AttendanceManagement = () => {
-    const [attendanceData, setAttendanceData] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-    useEffect(() => {
-        const fetchAttendance = async () => {
-            try {
-                const res = await axios.get(`http://127.0.0.1:5000/api/attendance/all?date=${selectedDate}`, {
-                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-                });
-                setAttendanceData(res.data);
-            } catch (err) { console.error(err); }
-        };
-        fetchAttendance();
-    }, [selectedDate]);
+    const [monthlyData, setMonthlyData] = useState([]);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
 
     // ISSUE 1 FIX: CSV EXPORT
     const handleExport = () => {
-        const headers = ["Employee Name", "Employee ID", "Date", "Check In", "Check Out", "Work Hours", "Status"];
+        const headers = ["Employee Name", "Employee ID", "Total", "Present", "Late", "Absent", "Half Day", "Late Min", "Rate"];
         const csvContent = [
             headers.join(","),
-            ...attendanceData.map(d => 
-                `"${d.name}","${d.employee_id}","${d.date}","${d.check_in || '--'}","${d.check_out || '--'}","${d.work_hours || '0h'}","${d.status}"`
-            )
+            ...monthlyData.map(d => {
+                const total = Number(d.total) || 0;
+                const present = Number(d.present) || 0;
+                const rate = total ? Math.round((present / total) * 100) : 0;
+                return `"${d.name}","${d.employee_id}","${d.total}","${d.present}","${d.late}","${d.absent}","${d.half}","${d.late_minutes || 0}","${rate}%"`;
+            })
         ].join("\n");
 
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `attendance_report_${selectedDate}.csv`);
+        link.setAttribute("download", `monthly_attendance_summary_${selectedMonth}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
 
-    // ISSUE 2 FIX: MONTHLY SUMMARY CALCULATION
-    const getMonthlySummary = () => {
-        const currentMonth = new Date().getMonth();
-        const currentYear = new Date().getFullYear();
-        
-        const summaryMap = attendanceData.reduce((acc, curr) => {
-            const date = new Date(curr.date);
-            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                if (!acc[curr.employee_id]) {
-                    acc[curr.employee_id] = { 
-                        name: curr.name, id: curr.employee_id, total: 0, 
-                        present: 0, late: 0, absent: 0, half: 0 
-                    };
-                }
-                const emp = acc[curr.employee_id];
-                emp.total += 1;
-                if (curr.status === "Present") emp.present += 1;
-                else if (curr.status === "Late") emp.late += 1;
-                else if (curr.status === "Absent") emp.absent += 1;
-                else if (curr.status === "Half Day") emp.half += 1;
-            }
-            return acc;
-        }, {});
-
-        return Object.values(summaryMap);
-    };
-
-    const monthlyData = getMonthlySummary();
+    useEffect(() => {
+        const fetchMonthlySummary = async () => {
+            try {
+                const res = await axios.get(`http://127.0.0.1:5000/api/attendance/monthly-summary?month=${selectedMonth}`, {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                });
+                setMonthlyData(res.data);
+            } catch (err) { console.error(err); }
+        };
+        fetchMonthlySummary();
+    }, [selectedMonth]);
 
     return (
         <div style={styles.container}>
             <div style={styles.header}>
                 <div>
                     <h2 style={styles.title}>Attendance Tracking</h2>
-                    <p style={styles.subtitle}>Daily and Monthly organization logs</p>
+                    <p style={styles.subtitle}>Monthly attendance summary</p>
                 </div>
-                <button style={styles.exportBtn} onClick={handleExport}>
-                    <Download size={16} /> Export Report
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input
+                        type="month"
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                    />
+                    <button style={styles.exportBtn} onClick={handleExport} disabled={!monthlyData?.length}>
+                        <Download size={16} /> Export Report
+                    </button>
+                </div>
             </div>
 
             {/* ... Existing Stat Cards ... */}
-
-            <div style={styles.tableCard}>
-                <h3 style={styles.sectionTitle}>Daily Logs</h3>
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={styles.th}>Employee</th>
-                            <th style={styles.th}>Date</th>
-                            <th style={styles.th}>Check In</th>
-                            <th style={styles.th}>Check Out</th>
-                            <th style={styles.th}>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {attendanceData.map((row, idx) => (
-                            <tr key={idx} style={styles.tr}>
-                                <td style={styles.td}><b>{row.name}</b></td>
-                                <td style={styles.td}>{row.date}</td>
-                                <td style={styles.td}>{row.check_in || '--'}</td>
-                                <td style={styles.td}>{row.check_out || '--'}</td>
-                                <td style={styles.td}>
-                                    <span style={{...styles.badge, background: row.status === 'Present' ? '#dcfce7' : '#fee2e2', color: row.status === 'Present' ? '#166534' : '#991b1b'}}>{row.status}</span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
 
             {/* NEW MONTHLY SUMMARY SECTION */}
             <div style={{...styles.tableCard, marginTop: '30px'}}>
@@ -122,6 +76,7 @@ const AttendanceManagement = () => {
                             <th style={styles.th}>Late</th>
                             <th style={styles.th}>Absent</th>
                             <th style={styles.th}>Half Day</th>
+                            <th style={styles.th}>Late Min</th>
                             <th style={styles.th}>Rate</th>
                         </tr>
                     </thead>
@@ -132,13 +87,14 @@ const AttendanceManagement = () => {
                                 <tr key={idx} style={styles.tr}>
                                     <td style={styles.td}>
                                         <div style={{fontWeight: '600'}}>{row.name}</div>
-                                        <div style={{fontSize: '0.8em', color: '#888'}}>{row.id}</div>
+                                        <div style={{fontSize: '0.8em', color: '#888'}}>{row.employee_id}</div>
                                     </td>
                                     <td style={styles.td}>{row.total}</td>
                                     <td style={styles.td}><span style={styles.sumBadge}>{row.present}</span></td>
                                     <td style={styles.td}><span style={{...styles.sumBadge, background: '#fef3c7'}}> {row.late}</span></td>
                                     <td style={styles.td}><span style={{...styles.sumBadge, background: '#fee2e2'}}> {row.absent}</span></td>
                                     <td style={styles.td}><span style={{...styles.sumBadge, background: '#f3e8ff'}}> {row.half}</span></td>
+                                    <td style={styles.td}>{row.late_minutes || 0}</td>
                                     <td style={styles.td}>
                                         <div style={{display:'flex', alignItems:'center', gap: '8px'}}>
                                             <div style={styles.progressBg}>

@@ -4,7 +4,9 @@ import {
   getAttendance,
   getUpcomingHolidays,
   getNotifications,
-  getLeaves
+  getLeaves,
+  getLatestLeave,
+  getWalletInfo
 } from "../services/api";
 
 import Chart from "react-apexcharts";
@@ -20,11 +22,10 @@ function Dashboard() {
   const [notifications, setNotifications] = useState([]);
   const [totalDays, setTotalDays] = useState(0);
   const [lateUsed, setLateUsed] = useState(0);
+  const [monthlyLimit, setMonthlyLimit] = useState(45);
   
   // Hover states for top cards
   const [hoveredCard, setHoveredCard] = useState(null);
-
-  const monthlyLimit = 45;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,8 +34,13 @@ function Dashboard() {
         setAttendanceData(attendance);
         setTotalDays(attendance.length);
 
-        const totalLate = attendance.reduce((sum, r) => sum + (r.late_minutes || 0), 0);
-        setLateUsed(totalLate);
+        try {
+          const wallet = await getWalletInfo();
+          setMonthlyLimit(Number(wallet?.monthly_limit ?? 45));
+          setLateUsed(Number(wallet?.used_minutes ?? 0));
+        } catch {
+          // keep defaults
+        }
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
         if (user) {

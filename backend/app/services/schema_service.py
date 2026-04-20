@@ -21,6 +21,100 @@ def ensure_schema() -> None:
     table_names = set(inspector.get_table_names())
     dialect = engine.dialect.name
 
+    if "system_config" not in table_names:
+        try:
+            if dialect == "mysql":
+                ddl = """
+                CREATE TABLE system_config (
+                  id INTEGER NOT NULL,
+                  check_in VARCHAR(5) NOT NULL DEFAULT '09:00',
+                  check_out VARCHAR(5) NOT NULL DEFAULT '18:00',
+                  late_tolerance INTEGER NOT NULL DEFAULT 15,
+                  monthly_late_wallet INTEGER NOT NULL DEFAULT 45,
+                  min_work_hours INTEGER NOT NULL DEFAULT 8,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  PRIMARY KEY (id)
+                ) ENGINE=InnoDB
+                """
+            elif dialect == "sqlite":
+                ddl = """
+                CREATE TABLE system_config (
+                  id INTEGER NOT NULL PRIMARY KEY,
+                  check_in TEXT NOT NULL DEFAULT '09:00',
+                  check_out TEXT NOT NULL DEFAULT '18:00',
+                  late_tolerance INTEGER NOT NULL DEFAULT 15,
+                  monthly_late_wallet INTEGER NOT NULL DEFAULT 45,
+                  min_work_hours INTEGER NOT NULL DEFAULT 8,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+            else:
+                ddl = """
+                CREATE TABLE system_config (
+                  id INTEGER NOT NULL PRIMARY KEY,
+                  check_in VARCHAR(5) NOT NULL DEFAULT '09:00',
+                  check_out VARCHAR(5) NOT NULL DEFAULT '18:00',
+                  late_tolerance INTEGER NOT NULL DEFAULT 15,
+                  monthly_late_wallet INTEGER NOT NULL DEFAULT 45,
+                  min_work_hours INTEGER NOT NULL DEFAULT 8,
+                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+
+            with engine.begin() as conn:
+                conn.execute(text(ddl))
+                conn.execute(text(
+                    "INSERT INTO system_config (id, check_in, check_out, late_tolerance, monthly_late_wallet, min_work_hours) "
+                    "VALUES (1, '09:00', '18:00', 15, 45, 8)"
+                ))
+            logging.info("Created system_config table with default row")
+            table_names.add("system_config")
+        except Exception:
+            logging.exception("Failed creating system_config table")
+
+    if "system_config" in table_names:
+        try:
+            existing_columns = {col["name"] for col in inspector.get_columns("system_config")}
+        except Exception:
+            logging.exception("Failed to inspect system_config table columns")
+            existing_columns = set()
+
+        system_columns = {
+            "check_in": "VARCHAR(5) NOT NULL DEFAULT '09:00'",
+            "check_out": "VARCHAR(5) NOT NULL DEFAULT '18:00'",
+            "late_tolerance": "INTEGER NOT NULL DEFAULT 15",
+            "monthly_late_wallet": "INTEGER NOT NULL DEFAULT 45",
+            "min_work_hours": "INTEGER NOT NULL DEFAULT 8",
+            "updated_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        }
+
+        missing = [name for name in system_columns.keys() if name not in existing_columns]
+        if missing:
+            ddls: list[str] = []
+            for col_name in missing:
+                col_def = system_columns[col_name]
+                ddls.append(f"ALTER TABLE system_config ADD COLUMN {col_name} {col_def}")
+
+            try:
+                with engine.begin() as conn:
+                    for ddl in ddls:
+                        conn.execute(text(ddl))
+                logging.info("Added missing system_config columns: %s", ", ".join(missing))
+            except Exception:
+                logging.exception("Failed adding missing system_config columns: %s", ", ".join(missing))
+
+        # Ensure at least one row exists.
+        try:
+            with engine.begin() as conn:
+                count = conn.execute(text("SELECT COUNT(*) FROM system_config")).scalar() or 0
+                if int(count) == 0:
+                    conn.execute(text(
+                        "INSERT INTO system_config (id, check_in, check_out, late_tolerance, monthly_late_wallet, min_work_hours) "
+                        "VALUES (1, '09:00', '18:00', 15, 45, 8)"
+                    ))
+        except Exception:
+            logging.exception("Failed ensuring system_config default row")
+
     if "users" in table_names:
         try:
             existing_columns = {col["name"] for col in inspector.get_columns("users")}
@@ -120,3 +214,57 @@ def ensure_schema() -> None:
                 logging.info("Added missing notifications columns: %s", ", ".join(missing))
             except Exception:
                 logging.exception("Failed adding missing notifications columns: %s", ", ".join(missing))
+
+    if "justifications" in table_names:
+        try:
+            existing_columns = {col["name"] for col in inspector.get_columns("justifications")}
+        except Exception:
+            logging.exception("Failed to inspect justifications table columns")
+            existing_columns = set()
+
+        justification_columns = {
+            # Added later; older DBs may be missing these.
+            "late_minutes": "INTEGER NULL DEFAULT 0",
+            "admin_response": "TEXT NULL",
+        }
+
+        missing = [name for name in justification_columns.keys() if name not in existing_columns]
+        if missing:
+            ddls: list[str] = []
+            for col_name in missing:
+                col_def = justification_columns[col_name]
+                ddls.append(f"ALTER TABLE justifications ADD COLUMN {col_name} {col_def}")
+
+            try:
+                with engine.begin() as conn:
+                    for ddl in ddls:
+                        conn.execute(text(ddl))
+                logging.info("Added missing justifications columns: %s", ", ".join(missing))
+            except Exception:
+                logging.exception("Failed adding missing justifications columns: %s", ", ".join(missing))
+
+    if "leaves" in table_names:
+        try:
+            existing_columns = {col["name"] for col in inspector.get_columns("leaves")}
+        except Exception:
+            logging.exception("Failed to inspect leaves table columns")
+            existing_columns = set()
+
+        leave_columns = {
+            "admin_response": "TEXT NULL",
+        }
+
+        missing = [name for name in leave_columns.keys() if name not in existing_columns]
+        if missing:
+            ddls: list[str] = []
+            for col_name in missing:
+                col_def = leave_columns[col_name]
+                ddls.append(f"ALTER TABLE leaves ADD COLUMN {col_name} {col_def}")
+
+            try:
+                with engine.begin() as conn:
+                    for ddl in ddls:
+                        conn.execute(text(ddl))
+                logging.info("Added missing leaves columns: %s", ", ".join(missing))
+            except Exception:
+                logging.exception("Failed adding missing leaves columns: %s", ", ".join(missing))

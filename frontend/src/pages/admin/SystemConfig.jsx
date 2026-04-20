@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
     Clock, Calendar, ShieldAlert, Info, 
@@ -7,7 +7,10 @@ import {
 
 const SystemConfig = ({ showNotify }) => {
     const [activeTab, setActiveTab] = useState("Work Timings");
-    const config = { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } };
+    const token = localStorage.getItem("token");
+    const config = useMemo(() => {
+        return { headers: { Authorization: `Bearer ${token}` } };
+    }, [token]);
     const API_BASE = "http://127.0.0.1:5000/api";
 
     // 1. Work Timings State
@@ -30,25 +33,44 @@ const SystemConfig = ({ showNotify }) => {
         weekend_multiplier: 1.5, holiday_multiplier: 2.0
     });
 
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await axios.get(`${API_BASE}/config/work-timing`, config);
+                if (res?.data) {
+                    setWorkTime((prev) => ({ ...prev, ...res.data }));
+                }
+            } catch {
+                // keep defaults (45 minutes, etc.)
+            }
+        })();
+    }, [config]);
+
     // --- API HANDLERS ---
     const saveWorkTime = async () => {
         try {
-            await axios.put(`${API_BASE}/config/work-timing`, workTime, config);
-            showNotify("Work Time Configuration Saved");
-        } catch (err) { showNotify("Failed to save", "error"); }
+            const payload = {
+                ...workTime,
+                late_tolerance: Number(workTime.late_tolerance),
+                monthly_late_wallet: Number(workTime.monthly_late_wallet),
+                min_work_hours: Number(workTime.min_work_hours),
+            };
+            await axios.put(`${API_BASE}/config/work-timing`, payload, config);
+            showNotify?.("Work Time Configuration Saved");
+        } catch (err) { showNotify?.(err.response?.data?.message || "Failed to save", "error"); }
     };
 
     const saveAttendanceRules = async () => {
         try {
             await axios.put(`${API_BASE}/config/attendance-rules`, attRules, config);
-            showNotify("Attendance Rules Updated");
-        } catch (err) { showNotify("Update failed", "error"); }
+            showNotify?.("Attendance Rules Updated");
+        } catch { showNotify?.("Update failed", "error"); }
     };
 
     const deleteLeaveType = (id) => {
         if (window.confirm("Delete this leave type?")) {
             setLeaveTypes(leaveTypes.filter(l => l.id !== id));
-            showNotify("Leave type removed");
+            showNotify?.("Leave type removed");
         }
     };
 
@@ -162,19 +184,40 @@ const SystemConfig = ({ showNotify }) => {
             <div style={styles.grid2}>
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Half Day Work Hours</label>
-                    <input type="number" style={styles.input} value={attRules.half_day}/>
+                    <input
+                        type="number"
+                        style={styles.input}
+                        value={attRules.half_day}
+                        onChange={e => setAttRules({ ...attRules, half_day: Number(e.target.value) })}
+                    />
                 </div>
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Full Day Work Hours</label>
-                    <input type="number" style={styles.input} value={attRules.full_day}/>
+                    <input
+                        type="number"
+                        style={styles.input}
+                        value={attRules.full_day}
+                        onChange={e => setAttRules({ ...attRules, full_day: Number(e.target.value) })}
+                    />
                 </div>
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Overtime Threshold (Hrs)</label>
-                    <input type="number" style={styles.input} value={attRules.ot_threshold}/>
+                    <input
+                        type="number"
+                        style={styles.input}
+                        value={attRules.ot_threshold}
+                        onChange={e => setAttRules({ ...attRules, ot_threshold: Number(e.target.value) })}
+                    />
                 </div>
                 <div style={styles.formGroup}>
                     <label style={styles.label}>Weekend Work Multiplier</label>
-                    <input type="number" step="0.1" style={styles.input} value={attRules.weekend_multiplier}/>
+                    <input
+                        type="number"
+                        step="0.1"
+                        style={styles.input}
+                        value={attRules.weekend_multiplier}
+                        onChange={e => setAttRules({ ...attRules, weekend_multiplier: Number(e.target.value) })}
+                    />
                 </div>
             </div>
 

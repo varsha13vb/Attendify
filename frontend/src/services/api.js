@@ -50,17 +50,35 @@ export const registerUser = async (userData) => {
 /* ---------------- ATTENDANCE ---------------- */
 
 export const getAttendance = async () => {
-  const token = localStorage.getItem("token");
-
-  const response = await fetch(`${BASE_URL}/api/attendance/`, {
+  const response = await fetch(`${BASE_URL}/api/attendance/records`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    }
+    headers: getAuthHeaders(),
   });
 
-  return response.json();
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch attendance records");
+  }
+
+  return Array.isArray(data) ? data : [];
+};
+
+/* ---------------- WALLET ---------------- */
+
+export const getWalletInfo = async () => {
+  const response = await fetch(`${BASE_URL}/api/wallet/`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch wallet info");
+  }
+
+  return data;
 };
 
 /* ---------------- LEAVE ---------------- */

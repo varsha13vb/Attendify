@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
 const EmployeeManagement = ({ showNotify }) => {
     const [employees, setEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [loading, setLoading] = useState(false);
     const [openDropdownId, setOpenDropdownId] = useState(null);
 
     // Modal States
@@ -13,22 +12,30 @@ const EmployeeManagement = ({ showNotify }) => {
     const [deleteItem, setDeleteItem] = useState(null);
     const [formData, setFormData] = useState({ name: '', email: '', dob: '', employee_id: '' });
 
-    const config = { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } };
+    const token = localStorage.getItem("token");
+    const config = useMemo(() => {
+        return { headers: { Authorization: `Bearer ${token}` } };
+    }, [token]);
     const API_URL = "http://127.0.0.1:5000/api/admin/employees";
 
-    useEffect(() => {
-        fetchEmployees();
-        const closeMenu = () => setOpenDropdownId(null);
-        window.addEventListener('click', closeMenu);
-        return () => window.removeEventListener('click', closeMenu);
-    }, []);
-
-    const fetchEmployees = async () => {
+    const fetchEmployees = useCallback(async () => {
         try {
             const res = await axios.get(API_URL, config);
             setEmployees(res.data);
-        } catch (err) { showNotify("Failed to fetch employees", "error"); }
-    };
+        } catch { showNotify("Failed to fetch employees", "error"); }
+    }, [config, showNotify]);
+
+    useEffect(() => {
+        const fetchTimer = setTimeout(() => {
+            fetchEmployees();
+        }, 0);
+        const closeMenu = () => setOpenDropdownId(null);
+        window.addEventListener('click', closeMenu);
+        return () => {
+            clearTimeout(fetchTimer);
+            window.removeEventListener('click', closeMenu);
+        };
+    }, [fetchEmployees]);
 
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -50,7 +57,7 @@ const EmployeeManagement = ({ showNotify }) => {
             showNotify("Employee details updated");
             setIsEditOpen(false);
             fetchEmployees();
-        } catch (err) { showNotify("Update failed", "error"); }
+        } catch { showNotify("Update failed", "error"); }
     };
 
     const confirmDelete = async () => {
@@ -59,7 +66,7 @@ const EmployeeManagement = ({ showNotify }) => {
             showNotify("Employee removed from database");
             setDeleteItem(null);
             fetchEmployees();
-        } catch (err) { showNotify("Delete failed", "error"); }
+        } catch { showNotify("Delete failed", "error"); }
     };
 
     return (
@@ -92,7 +99,20 @@ const EmployeeManagement = ({ showNotify }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {employees.filter(e => e.name.toLowerCase().includes(searchTerm.toLowerCase())).map(emp => (
+                        {employees
+                            .filter((emp) => {
+                                const term = (searchTerm || "").trim().toLowerCase();
+                                if (!term) return true;
+                                const name = String(emp?.name || "").toLowerCase();
+                                const employeeId = String(emp?.employee_id || "").toLowerCase();
+                                const email = String(emp?.email || "").toLowerCase();
+                                return (
+                                    name.includes(term) ||
+                                    employeeId.includes(term) ||
+                                    email.includes(term)
+                                );
+                            })
+                            .map(emp => (
                             <tr key={emp.id} style={styles.tr}>
                                 <td style={styles.td}>
                                     <div style={styles.userCell}>
