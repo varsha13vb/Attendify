@@ -7,5 +7,6 @@ class Attendance(db.Model):
     employee_id = db.Column(db.String(20), db.ForeignKey("users.employee_id"))
     date = db.Column(db.Date, nullable=False)
     check_in = db.Column(db.Time)
+    checkout = db.Column("checkout", db.Time)
     late_minutes = db.Column(db.Integer, default=0)
     status = db.Column(db.Enum("Present", "Absent", "Late", "Half Day"))

@@ -64,6 +64,103 @@ export const getAttendance = async () => {
   return Array.isArray(data) ? data : [];
 };
 
+export const getTodayAttendanceStatus = async () => {
+  const response = await fetch(`${BASE_URL}/api/attendance/today-status`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch today's attendance status");
+  }
+
+  return data;
+};
+
+export const clockInAttendance = async () => {
+  const response = await fetch(`${BASE_URL}/api/attendance/clock-in`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to clock in");
+  }
+
+  return data;
+};
+
+export const clockOutAttendance = async () => {
+  const response = await fetch(`${BASE_URL}/api/attendance/clock-out`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to clock out");
+  }
+
+  return data;
+};
+
+export const getAdminAttendanceForDate = async (attendanceDate, employeeId = "all") => {
+  const params = new URLSearchParams();
+  if (attendanceDate) params.set("date", attendanceDate);
+  if (employeeId && employeeId !== "all") params.set("employee_id", employeeId);
+
+  const response = await fetch(`${BASE_URL}/api/attendance/all?${params.toString()}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch daily attendance");
+  }
+
+  return Array.isArray(data) ? data : [];
+};
+
+export const getMonthlyAttendanceSummary = async (month) => {
+  const params = new URLSearchParams();
+  if (month) params.set("month", month);
+
+  const response = await fetch(`${BASE_URL}/api/attendance/monthly-summary?${params.toString()}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch monthly attendance summary");
+  }
+
+  return Array.isArray(data) ? data : [];
+};
+
+export const getAdminDashboardSummary = async () => {
+  const response = await fetch(`${BASE_URL}/api/attendance/dashboard-summary`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch admin dashboard summary");
+  }
+
+  return data;
+};
+
 /* ---------------- WALLET ---------------- */
 
 export const getWalletInfo = async () => {

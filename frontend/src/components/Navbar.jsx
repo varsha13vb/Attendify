@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function Navbar() {
-
   const location = useLocation();
   const navigate = useNavigate();
   let user = null;
+
   try {
     user = JSON.parse(localStorage.getItem("currentUser") || "null");
   } catch {
@@ -14,14 +14,22 @@ function Navbar() {
 
   const getTitle = () => {
     switch (location.pathname) {
-      case "/dashboard": return "Dashboard";
-      case "/attendance": return "Attendance";
-      case "/leave": return "Leave";
-      case "/justification": return "Justification";
-      case "/profile": return "Profile";
-      case "/preferences": return "Preferences";
-      case "/admin": return "Admin Panel";
-      default: return "Attendify";
+      case "/dashboard":
+        return "Dashboard";
+      case "/attendance":
+        return "Check In/Out";
+      case "/leave":
+        return "Leave";
+      case "/justification":
+        return "Justification";
+      case "/profile":
+        return "Profile";
+      case "/preferences":
+        return "Preferences";
+      case "/admin":
+        return "Admin Panel";
+      default:
+        return "Attendify";
     }
   };
 
@@ -60,11 +68,8 @@ function Navbar() {
 
   return (
     <div style={styles.navbar}>
-
-      {/* Page Title */}
       <h2 style={styles.title}>{getTitle()}</h2>
 
-      {/* Profile */}
       <div style={styles.profileWrap} ref={menuRef}>
         <button
           type="button"
@@ -110,7 +115,6 @@ function Navbar() {
           </div>
         )}
       </div>
-
     </div>
   );
 }
@@ -125,6 +129,10 @@ const styles = {
     padding: "0 25px",
     color: "#fff",
     boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+    position: "sticky",
+    top: 0,
+    zIndex: 30,
+    flexShrink: 0,
   },
 
   title: {

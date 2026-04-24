@@ -243,6 +243,26 @@ def ensure_schema() -> None:
             except Exception:
                 logging.exception("Failed adding missing justifications columns: %s", ", ".join(missing))
 
+    if "attendance" in table_names:
+        try:
+            existing_columns = {col["name"] for col in inspector.get_columns("attendance")}
+        except Exception:
+            logging.exception("Failed to inspect attendance table columns")
+            existing_columns = set()
+
+        if "checkout" not in existing_columns:
+            if dialect == "sqlite":
+                checkout_def = "TIME NULL"
+            else:
+                checkout_def = "TIME NULL"
+
+            try:
+                with engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE attendance ADD COLUMN checkout {checkout_def}"))
+                logging.info("Added missing attendance column: checkout")
+            except Exception:
+                logging.exception("Failed adding missing attendance column: checkout")
+
     if "leaves" in table_names:
         try:
             existing_columns = {col["name"] for col in inspector.get_columns("leaves")}

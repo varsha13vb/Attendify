@@ -1,0 +1,39 @@
+<svg width="860" height="240" viewBox="0 0 860 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="attendifyGradient" x1="40" y1="36" x2="160" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C20CE7" />
+      <stop offset="100%" stop-color="#7D3C98" />
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="860" height="240" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#7D3C98" flood-opacity="0.14" />
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="10" y="10" width="840" height="220" rx="34" fill="white" />
+  </g>
+
+  <g transform="translate(62 44)">
+    <path
+      d="M74 22L33 94C28 102 30 113 38 118C47 124 58 121 63 112L93 56L117 93C122 101 134 104 143 99C152 94 154 82 149 74L110 11C105 3 94 0 85 5C80 8 76 14 74 22Z"
+      fill="url(#attendifyGradient)"
+    />
+    <path
+      d="M120 29L81 97C76 105 78 116 87 121C95 126 106 123 111 115L151 47C156 39 154 28 146 23C137 18 126 21 120 29Z"
+      fill="url(#attendifyGradient)"
+    />
+    <circle cx="148" cy="18" r="16" fill="url(#attendifyGradient)" />
+  </g>
+
+  <text
+    x="250"
+    y="150"
+    fill="#2D314A"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="104"
+    font-weight="700"
+    letter-spacing="2"
+  >
+    ATTENDIFY
+  </text>
+</svg>

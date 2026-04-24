@@ -20,10 +20,17 @@ def get_monthly_late_wallet_limit() -> int:
 
 def get_used_late_wallet_minutes(employee_id: str, *, when: Optional[datetime] = None) -> int:
     now = when or datetime.now()
+    start_date = datetime(now.year, now.month, 1).date()
+    if now.month == 12:
+        end_date = datetime(now.year + 1, 1, 1).date()
+    else:
+        end_date = datetime(now.year, now.month + 1, 1).date()
+
     monthly_records = (
         Attendance.query
         .filter_by(employee_id=employee_id)
-        .filter(Attendance.date >= datetime(now.year, now.month, 1).date())
+        .filter(Attendance.date >= start_date)
+        .filter(Attendance.date < end_date)
         .all()
     )
     return sum((record.late_minutes or 0) for record in monthly_records)

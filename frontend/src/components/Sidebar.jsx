@@ -5,13 +5,13 @@ import {
   FaFileAlt,
   FaUser,
   FaCog,
-  FaUserShield
+  FaUserShield,
 } from "react-icons/fa";
 
 function Sidebar() {
-
   const location = useLocation();
   let user = null;
+
   try {
     user = JSON.parse(localStorage.getItem("currentUser") || "null");
   } catch {
@@ -22,7 +22,7 @@ function Sidebar() {
 
   const menu = [
     { name: "Dashboard", path: "/dashboard", icon: <FaHome /> },
-    { name: "Attendance", path: "/attendance", icon: <FaCalendarCheck /> },
+    { name: "Check In/Out", path: "/attendance", icon: <FaCalendarCheck /> },
     { name: "Justification", path: "/justification", icon: <FaFileAlt /> },
     { name: "Leave", path: "/leave", icon: <FaFileAlt /> },
     { name: "Profile", path: "/profile", icon: <FaUser /> },
@@ -31,17 +31,12 @@ function Sidebar() {
 
   return (
     <div style={styles.sidebar}>
+      <div style={styles.logoContainer}>
+        <img src="/images/attendifylogo.png" alt="Attendify" style={styles.logoImg} />
+      </div>
 
-        <div style={styles.logoContainer}>
-        <img 
-          src="/images/Horizontal logo.png"
-          alt="Attendify"
-          style={styles.logoImg}
-        />
-       </div>
       <div style={styles.menu}>
         {menu.map((item, index) => {
-
           const active = isActive(item.path);
 
           return (
@@ -50,28 +45,28 @@ function Sidebar() {
               to={item.path}
               style={{
                 ...styles.link,
-                ...(active && styles.activeLink)
+                ...(active && styles.activeLink),
               }}
             >
-              <span style={{
-                ...styles.icon,
-                ...(active && styles.activeIcon)
-              }}>
+              <span
+                style={{
+                  ...styles.icon,
+                  ...(active && styles.activeIcon),
+                }}
+              >
                 {item.icon}
               </span>
-
               {item.name}
             </Link>
           );
         })}
 
-        {/* Admin */}
         {user?.role === "admin" && (
           <Link
             to="/admin"
             style={{
               ...styles.link,
-              ...(isActive("/admin") && styles.activeLink)
+              ...(isActive("/admin") && styles.activeLink),
             }}
           >
             <span style={styles.icon}>
@@ -81,13 +76,11 @@ function Sidebar() {
           </Link>
         )}
       </div>
-
     </div>
   );
 }
 
 const styles = {
-
   sidebar: {
     width: "240px",
     minWidth: "240px",
@@ -99,39 +92,31 @@ const styles = {
     color: "#fff",
     position: "fixed",
   },
-logoContainer: {
+ logoContainer: {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  background: "rgba(255,255,255,0.08)",   // subtle glass effect
-  padding: "12px",
-  borderRadius: "12px",
+  background: "#ffffff",
+  padding: "16px",
+  borderRadius: "16px",
   margin: "10px",
   marginBottom: "30px",
-  backdropFilter: "blur(8px)",            // 🔥 premium look
-  border: "1px solid rgba(255,255,255,0.1)",
+  border: "1px solid rgba(255,255,255,0.55)",
+  boxShadow: "0 18px 36px rgba(28, 18, 45, 0.2)",
 },
 
 logoImg: {
-  width: "130px",
+  width: "100%",
+  maxWidth: "160px",
   height: "auto",
   objectFit: "contain",
-  filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))", // glow
+  display: "block",
 },
-
-logo: {
-  fontSize: "18px",
-  fontWeight: "600",
-  color: "#fff",
-  letterSpacing: "0.5px",
-},
-
   menu: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
   },
-
   link: {
     display: "flex",
     alignItems: "center",
@@ -143,19 +128,15 @@ logo: {
     fontSize: "14px",
     transition: "all 0.3s ease",
   },
-
   icon: {
     fontSize: "16px",
     transition: "0.3s",
   },
-
-  /* ACTIVE */
   activeLink: {
     backgroundColor: "rgba(255,255,255,0.2)",
     transform: "translateX(6px)",
     boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
   },
-
   activeIcon: {
     transform: "scale(1.2)",
   },
