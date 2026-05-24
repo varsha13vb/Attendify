@@ -10,12 +10,19 @@ from app import db
 from app.models.justification_model import Justification
 from app.models.user_model import User
 from app.services.email_service import send_message_async
+from app.services.notification_service import preference_enabled
 
 justification_bp = Blueprint("justification", __name__)
 
 
 def _send_justification_status_email(*, employee: User, justification: Justification) -> None:
     if not current_app.config.get("SEND_JUSTIFICATION_STATUS_EMAIL", True):
+        return
+
+    if not preference_enabled(employee, "email_notifications", default=True):
+        return
+
+    if not preference_enabled(employee, "attendance_alerts", default=True):
         return
 
     sender = (

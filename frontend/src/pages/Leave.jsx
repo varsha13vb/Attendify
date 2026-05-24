@@ -1,6 +1,27 @@
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import Layout from "../components/Layout";
 import { applyLeave, getLeaves } from "../services/api";
+
+const formatDateInputValue = (dateValue) => {
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getMinimumLeaveDate = () => {
+  const dateValue = new Date();
+  dateValue.setHours(0, 0, 0, 0);
+  dateValue.setDate(dateValue.getDate() + 2);
+  return formatDateInputValue(dateValue);
+};
+
+const getTodayDate = () => {
+  const dateValue = new Date();
+  dateValue.setHours(0, 0, 0, 0);
+  return formatDateInputValue(dateValue);
+};
 
 function Leave() {
   const [leaveHistory, setLeaveHistory] = useState([]);
@@ -16,6 +37,8 @@ function Leave() {
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const todayDate = getTodayDate();
+  const minimumLeaveDate = getMinimumLeaveDate();
 
   useEffect(() => {
     fetchLeaves();
@@ -48,12 +71,30 @@ function Leave() {
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
     if (!token || !currentUser) {
-      setErrorMessage("You are not logged in.");
+      const message = "You are not logged in.";
+      setErrorMessage(message);
+      await Swal.fire("Error", message, "error");
+      return;
+    }
+
+    if (formData.fromDate < todayDate) {
+      const message = "Cannot apply leave for past dates.";
+      setErrorMessage(message);
+      await Swal.fire("Leave Not Allowed", message, "error");
+      return;
+    }
+
+    if (formData.fromDate < minimumLeaveDate) {
+      const message = "Leave must be applied at least 2 days in advance. You cannot apply for today or tomorrow.";
+      setErrorMessage(message);
+      await Swal.fire("Leave Not Allowed", message, "error");
       return;
     }
 
     if (formData.fromDate > formData.toDate) {
-      setErrorMessage("From Date cannot be after To Date.");
+      const message = "From Date cannot be after To Date.";
+      setErrorMessage(message);
+      await Swal.fire("Error", message, "error");
       return;
     }
 
@@ -70,6 +111,7 @@ function Leave() {
 
       if (response.message) {
         setSuccessMessage("Leave applied successfully!");
+        await Swal.fire("Success", "Leave applied successfully!", "success");
 
         setFormData({
           leaveType: "",
@@ -82,8 +124,9 @@ function Leave() {
       }
 
     } catch (error) {
-      console.error("Leave error:", error);
-      setErrorMessage("Something went wrong.");
+      const message = error?.message || "Something went wrong.";
+      setErrorMessage(message);
+      await Swal.fire("Error", message, "error");
     } finally {
       setLoading(false);
     }
@@ -110,11 +153,11 @@ function Leave() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>Type</th>
-                <th style={styles.th}>From</th>
-                <th style={styles.th}>To</th>
-                <th style={styles.th}>Reason</th>
-                <th style={styles.th}>Status</th>
+                <th style={{ ...styles.th, ...styles.typeColumn }}>Type</th>
+                <th style={{ ...styles.th, ...styles.dateColumn }}>From</th>
+                <th style={{ ...styles.th, ...styles.dateColumn }}>To</th>
+                <th style={{ ...styles.th, ...styles.reasonColumn }}>Reason</th>
+                <th style={{ ...styles.th, ...styles.statusColumn }}>Status</th>
               </tr>
             </thead>
 
@@ -128,12 +171,12 @@ function Leave() {
               ) : (
                 leaveHistory.map((leave, index) => (
                   <tr key={index}>
-                    <td style={styles.td}>{leave.leave_type}</td>
-                    <td style={styles.td}>{leave.from_date}</td>
-                    <td style={styles.td}>{leave.to_date}</td>
-                    <td style={styles.td}>{leave.reason}</td>
+                    <td style={{ ...styles.td, ...styles.typeColumn }}>{leave.leave_type}</td>
+                    <td style={{ ...styles.td, ...styles.dateColumn }}>{leave.from_date}</td>
+                    <td style={{ ...styles.td, ...styles.dateColumn }}>{leave.to_date}</td>
+                    <td style={{ ...styles.td, ...styles.reasonColumn }}>{leave.reason}</td>
 
-                    <td style={styles.td}>
+                    <td style={{ ...styles.td, ...styles.statusColumn, ...styles.statusCell }}>
                       <span
                         style={
                           leave.status === "Approved"
@@ -188,6 +231,7 @@ function Leave() {
                   name="fromDate"
                   value={formData.fromDate}
                   onChange={handleChange}
+                  min={minimumLeaveDate}
                   required
                   style={styles.input}
                 />
@@ -197,6 +241,7 @@ function Leave() {
                   name="toDate"
                   value={formData.toDate}
                   onChange={handleChange}
+                  min={formData.fromDate || minimumLeaveDate}
                   required
                   style={styles.input}
                 />
@@ -261,17 +306,41 @@ marginBottom:"30px"
 table:{
 width:"100%",
 borderCollapse:"collapse",
-textAlign:"center"
+tableLayout:"fixed"
 },
 
 th:{
-padding:"12px",
-borderBottom:"2px solid var(--border)"
+padding:"14px 16px",
+borderBottom:"2px solid var(--border)",
+textAlign:"left"
 },
 
 td:{
-padding:"10px",
-borderBottom:"1px solid var(--border)"
+padding:"18px 16px",
+borderBottom:"1px solid var(--border)",
+textAlign:"left",
+verticalAlign:"middle",
+wordBreak:"break-word"
+},
+
+typeColumn:{
+width:"14%"
+},
+
+dateColumn:{
+width:"18%"
+},
+
+reasonColumn:{
+width:"32%"
+},
+
+statusColumn:{
+width:"18%"
+},
+
+statusCell:{
+whiteSpace:"nowrap"
 },
 
 noData:{
@@ -279,18 +348,36 @@ padding:"20px"
 },
 
 approved:{
-color:"green",
-fontWeight:"600"
+background:"#DCFCE7",
+color:"#16A34A",
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 },
 
 rejected:{
-color:"red",
-fontWeight:"600"
+background:"#FEE2E2",
+color:"#DC2626",
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 },
 
 pending:{
-color:"orange",
-fontWeight:"600"
+background:"#FEF3C7",
+color:"#B45309",
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 },
 
 card:{

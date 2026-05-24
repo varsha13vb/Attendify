@@ -24,6 +24,17 @@ def _mail_configured() -> bool:
     return bool(current_app.config.get("MAIL_SERVER") and _mail_sender())
 
 
+def preference_enabled(user: Optional[User], field_name: str, *, default: bool) -> bool:
+    if not user:
+        return default
+
+    value = getattr(user, field_name, None)
+    if value is None:
+        return default
+
+    return bool(value)
+
+
 def create_notification(
     *,
     employee_id: Optional[str],
@@ -76,12 +87,8 @@ def _send_notification_email(employee_id: str, *, subject: str, body: str) -> No
     if not user or not user.email:
         return
 
-    # Respect user preferences if present.
-    try:
-        if user.email_notifications is False:
-            return
-    except Exception:
-        pass
+    if not preference_enabled(user, "email_notifications", default=True):
+        return
 
     if not _mail_configured():
         return

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Clock, Calendar, User, X, AlertCircle } from 'lucide-react';
 
 const JustificationManagement = ({ showNotify }) => {
+    // State for justification records, review modal, and validation feedback.
     const [records, setRecords] = useState([]);
     const [selectedItem, setSelectedItem] = useState(null);
     const [adminResponse, setAdminResponse] = useState("");
@@ -14,6 +15,7 @@ const JustificationManagement = ({ showNotify }) => {
 
     useEffect(() => { fetchRecords(); }, []);
 
+    // Data loading and approve/reject action handlers.
     const fetchRecords = async () => {
         setLoading(true);
         try {
@@ -38,13 +40,21 @@ const JustificationManagement = ({ showNotify }) => {
         } catch (err) { showNotify("Action failed", "error"); }
     };
 
+    const getStatusBadgeStyle = (status) => ({
+        ...styles.statusBadge,
+        backgroundColor: status === 'Approved' ? '#dcfce7' : status === 'Rejected' ? '#fee2e2' : '#fef3c7',
+        color: status === 'Approved' ? '#16a34a' : status === 'Rejected' ? '#dc2626' : '#b45309',
+    });
+
     return (
         <div style={styles.container}>
+            {/* Header section */}
             <div style={styles.header}>
                 <h2 style={styles.title}>Justification Management</h2>
                 <p style={styles.subtitle}>Review late arrival justifications from employees</p>
             </div>
 
+            {/* Justification request cards section */}
             <div style={styles.cardGrid}>
                 {records.map((item) => (
                     <div key={item.id} style={styles.card}>
@@ -56,10 +66,9 @@ const JustificationManagement = ({ showNotify }) => {
                                     <div style={styles.empId}>{item.employee_id}</div>
                                 </div>
                             </div>
-                            <span style={{...styles.badge, 
-                                backgroundColor: item.status === 'Approved' ? '#dcfce7' : item.status === 'Rejected' ? '#fee2e2' : '#fef3c7',
-                                color: item.status === 'Approved' ? '#16a34a' : item.status === 'Rejected' ? '#dc2626' : '#b45309',
-                            }}>{item.status}</span>
+                            <span style={getStatusBadgeStyle(item.status)}>
+                                {item.status}
+                            </span>
                         </div>
 
                         <div style={styles.detailsGrid}>
@@ -85,7 +94,7 @@ const JustificationManagement = ({ showNotify }) => {
                 ))}
             </div>
 
-            {/* REVIEW MODAL */}
+            {/* Review modal section for admin approval or rejection */}
             {selectedItem && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modal}>
@@ -130,6 +139,7 @@ const JustificationManagement = ({ showNotify }) => {
     );
 };
 
+// Centralized styles for the justification management page.
 const styles = {
     container: { padding: '10px' },
     title: { margin: 0, fontWeight: '700' },
@@ -141,7 +151,7 @@ const styles = {
     avatar: { width: '38px', height: '38px', background: '#E9D5FF', color: '#7D3C98', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' },
     empName: { fontWeight: '700', fontSize: '15px' },
     empId: { fontSize: '0.8em', color: '#888' },
-    badge: { padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase' },
+    statusBadge: { padding: '4px 10px', borderRadius: '20px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase' },
     detailsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '15px' },
     labelRow: { display: 'flex', alignItems: 'center', gap: '6px', color: '#888' },
     label: { fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '600' },

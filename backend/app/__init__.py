@@ -125,6 +125,8 @@ def create_app() -> Flask:
     # Email sending (registration).
     app.config["SEND_WELCOME_EMAIL"] = os.getenv("SEND_WELCOME_EMAIL", "true").lower() == "true"
     app.config["WELCOME_EMAIL_ASYNC"] = os.getenv("WELCOME_EMAIL_ASYNC", "true").lower() == "true"
+    app.config["SEND_PASSWORD_RESET_EMAIL"] = os.getenv("SEND_PASSWORD_RESET_EMAIL", "true").lower() == "true"
+    app.config["PASSWORD_RESET_EMAIL_ASYNC"] = os.getenv("PASSWORD_RESET_EMAIL_ASYNC", "true").lower() == "true"
     app.config["JWT_SECRET_KEY"] = (
         os.getenv("JWT_SECRET_KEY")
         or os.getenv("SECRET_KEY")
@@ -138,6 +140,11 @@ def create_app() -> Flask:
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=24)
     app.config["JWT_IDENTITY_CLAIM"] = "sub"
     app.config["JWT_VERIFY_SUB"] = False
+    app.config["FRONTEND_URL"] = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    try:
+        app.config["PASSWORD_RESET_TOKEN_MAX_AGE"] = int(os.getenv("PASSWORD_RESET_TOKEN_MAX_AGE", 3600))
+    except Exception:
+        app.config["PASSWORD_RESET_TOKEN_MAX_AGE"] = 3600
     app.config["UPLOAD_FOLDER"] = str(upload_dir)
     app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 

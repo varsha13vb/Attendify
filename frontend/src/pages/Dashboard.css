@@ -70,6 +70,11 @@
   text-decoration: none;
 }
 
+.dashboard-page .react-calendar__month-view__weekdays__weekday:last-child,
+.dashboard-page .react-calendar__month-view__weekdays__weekday:last-child abbr {
+  color: #dc2626;
+}
+
 .dashboard-page .react-calendar__tile {
   padding: 14px 6px;
   color: #1f2937;
@@ -77,8 +82,9 @@
 }
 
 .dashboard-page .react-calendar__tile--now {
-  background: #fef3c7;
-  color: #92400e;
+  background: #7d3c98;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(125, 60, 152, 0.28);
 }
 
 .dashboard-page .react-calendar__tile--active {
@@ -86,7 +92,7 @@
   color: #ffffff;
 }
 
-.dashboard-page .react-calendar__month-view__days__day--weekend {
+.dashboard-page .react-calendar button.dashboard-calendar__tile--sunday {
   color: #dc2626;
 }
 
@@ -94,13 +100,23 @@
   color: #9ca3af;
 }
 
-.dashboard-page .dashboard-calendar__tile--holiday {
-  background: #ede9fe;
-  color: #6d28d9;
+.dashboard-page .react-calendar button.dashboard-calendar__tile--holiday {
+  background: #fee2e2;
+  color: #b91c1c;
   font-weight: 700;
 }
 
-.dashboard-page .dashboard-calendar__tile--holiday.react-calendar__tile--now {
-  background: #fde68a;
-  color: #92400e;
+.dashboard-page .react-calendar button.dashboard-calendar__tile--holiday.react-calendar__tile--now {
+  background: #7d3c98;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(125, 60, 152, 0.28);
+}
+
+.dashboard-page .react-calendar button.dashboard-calendar__tile--sunday.react-calendar__tile--active,
+.dashboard-page .react-calendar button.dashboard-calendar__tile--holiday.react-calendar__tile--active {
+  color: #ffffff;
+}
+
+.dashboard-page .react-calendar button.dashboard-calendar__tile--holiday.react-calendar__tile--active {
+  background: #dc2626;
 }

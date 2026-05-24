@@ -6,16 +6,16 @@ import {
 } from 'lucide-react';
 
 const PolicyManagement = () => {
+    // State for policy data, filters, and modal workflows.
     const [policies, setPolicies] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("All Categories");
     
-    // Modal States
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editItem, setEditItem] = useState(null);
     const [deleteItem, setDeleteItem] = useState(null);
     
-    // Form State
+    // Form state used for both creating and editing policies.
     const [formData, setFormData] = useState({
         title: '', description: '', category: 'Attendance', 
         severity: 'Medium', applicable_to: 'All Employees', 
@@ -27,6 +27,7 @@ const PolicyManagement = () => {
 
     useEffect(() => { fetchPolicies(); }, []);
 
+    // API handlers for loading and modifying policy records.
     const fetchPolicies = async () => {
         try {
             const res = await axios.get(API_BASE, config);
@@ -72,7 +73,7 @@ const PolicyManagement = () => {
         });
     };
 
-    // Stats calculation
+    // Summary values displayed in the dashboard cards.
     const stats = {
         total: policies.length,
         active: policies.filter(p => p.is_active).length,
@@ -82,7 +83,7 @@ const PolicyManagement = () => {
 
     return (
         <div style={styles.container}>
-            {/* PART 1: SUMMARY CARDS */}
+            {/* Summary cards section */}
             <div style={styles.statsGrid}>
                 <div style={styles.statCard}>
                     <div><small style={styles.statLabel}>Total Policies</small><div style={styles.statVal}>{stats.total}</div></div>
@@ -102,7 +103,7 @@ const PolicyManagement = () => {
                 </div>
             </div>
 
-            {/* PART 2: HEADER SECTION */}
+            {/* Header section with page title and add action */}
             <div style={styles.header}>
                 <div>
                     <h2 style={styles.title}>Policy Enforcement</h2>
@@ -113,7 +114,7 @@ const PolicyManagement = () => {
                 </button>
             </div>
 
-            {/* PART 3: SEARCH + FILTER BAR */}
+            {/* Search and category filter section */}
             <div style={styles.searchRow}>
                 <div style={styles.searchWrapper}>
                     <Search size={18} style={styles.searchIcon} />
@@ -131,7 +132,7 @@ const PolicyManagement = () => {
                 </select>
             </div>
 
-            {/* PART 4: POLICY CARDS */}
+            {/* Policy list section */}
             <div style={styles.policyList}>
                 {policies.map(p => (
                     <div key={p.id} style={styles.policyCard}>
@@ -146,7 +147,7 @@ const PolicyManagement = () => {
                                 </div>
                             </div>
                             <div style={styles.cardHeaderRight}>
-                                {/* PART 5: TOGGLE */}
+                                {/* Active/inactive toggle and row actions */}
                                 <div 
                                     style={{...styles.toggleBg, background: p.is_active ? '#2d2d2d' : '#e5e7eb'}}
                                     onClick={() => handleToggle(p.id, p.is_active)}
@@ -174,7 +175,7 @@ const PolicyManagement = () => {
                 ))}
             </div>
 
-            {/* PART 6 & 7: ADD/EDIT MODAL */}
+            {/* Add and edit policy modal section */}
             {(isAddOpen || editItem) && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modal}>
@@ -231,7 +232,7 @@ const PolicyManagement = () => {
                 </div>
             )}
 
-            {/* PART 8: DELETE MODAL */}
+            {/* Delete confirmation modal section */}
             {deleteItem && (
                 <div style={styles.modalOverlay}>
                     <div style={{...styles.modal, width: '400px', textAlign: 'center'}}>
@@ -249,6 +250,7 @@ const PolicyManagement = () => {
     );
 };
 
+// Centralized styles for the policy management page.
 const styles = {
     container: { padding: '10px' },
     statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' },

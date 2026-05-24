@@ -90,6 +90,12 @@ function Login() {
             onBlur={e => e.target.style.boxShadow = "none"}
           />
 
+          <div style={styles.forgotRow}>
+            <Link to="/forgot-password" style={styles.forgotLink}>
+              Forgot password?
+            </Link>
+          </div>
+
           <button
             type="submit"
             style={styles.button}
@@ -241,6 +247,19 @@ bgCircle2: {
     fontSize: "14px",
     outline: "none",
     transition: "0.3s",
+  },
+
+  forgotRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: "18px",
+  },
+
+  forgotLink: {
+    color: "#7D3C98",
+    fontSize: "14px",
+    textDecoration: "none",
+    fontWeight: "600",
   },
 
   button: {

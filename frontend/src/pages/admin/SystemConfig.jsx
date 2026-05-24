@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 const SystemConfig = ({ showNotify }) => {
+    // State for top-level tab navigation and authenticated API requests.
     const [activeTab, setActiveTab] = useState("Work Timings");
     const token = localStorage.getItem("token");
     const config = useMemo(() => {
@@ -13,21 +14,21 @@ const SystemConfig = ({ showNotify }) => {
     }, [token]);
     const API_BASE = "http://127.0.0.1:5000/api";
 
-    // 1. Work Timings State
+    // Configuration state for work timing rules.
     const [workTime, setWorkTime] = useState({
         check_in: "09:00", check_out: "18:00",
         late_tolerance: 15, monthly_late_wallet: 45,
         min_work_hours: 8
     });
 
-    // 2. Leave Config State
+    // Configuration state for leave types and inline editing.
     const [leaveTypes, setLeaveTypes] = useState([
         { id: 1, name: 'Paid Leave', quota: 15, description: 'Standard annual leave', carry_forward: true, requires_approval: true },
         { id: 2, name: 'Sick Leave', quota: 10, description: 'Medical emergency leave', carry_forward: false, requires_approval: true }
     ]);
     const [editingLeaveId, setEditingLeaveId] = useState(null);
 
-    // 3. Attendance Rules State
+    // Configuration state for attendance rule calculations.
     const [attRules, setAttRules] = useState({
         half_day: 4, full_day: 8, ot_threshold: 9,
         weekend_multiplier: 1.5, holiday_multiplier: 2.0
@@ -46,7 +47,7 @@ const SystemConfig = ({ showNotify }) => {
         })();
     }, [config]);
 
-    // --- API HANDLERS ---
+    // Save and delete handlers for configuration updates.
     const saveWorkTime = async () => {
         try {
             const payload = {
@@ -74,7 +75,7 @@ const SystemConfig = ({ showNotify }) => {
         }
     };
 
-    // --- RENDER HELPERS ---
+    // Render helper for the work timings configuration tab.
     const renderWorkTimings = () => (
         <div style={styles.section}>
             <h3 style={styles.sectionTitle}>Work Time Configuration</h3>
@@ -121,6 +122,7 @@ const SystemConfig = ({ showNotify }) => {
         </div>
     );
 
+    // Render helper for the leave configuration tab.
     const renderLeaveConfig = () => (
         <div style={styles.section}>
             <h3 style={styles.sectionTitle}>Leave Types Configuration</h3>
@@ -178,6 +180,7 @@ const SystemConfig = ({ showNotify }) => {
         </div>
     );
 
+    // Render helper for the attendance rules configuration tab.
     const renderAttendanceRules = () => (
         <div style={styles.section}>
             <h3 style={styles.sectionTitle}>Attendance Rules & Calculations</h3>
@@ -238,12 +241,13 @@ const SystemConfig = ({ showNotify }) => {
 
     return (
         <div style={styles.container}>
+            {/* Header section */}
             <div style={styles.header}>
                 <h2 style={styles.title}>System Configuration</h2>
                 <p style={styles.subtitle}>Configure work timings, leave policies, and attendance rules</p>
             </div>
 
-            {/* PART 2: PILL TABS */}
+            {/* Tab navigation section */}
             <div style={styles.tabContainer}>
                 {["Work Timings", "Leave Configuration", "Attendance Rules"].map(tab => (
                     <div 
@@ -256,7 +260,7 @@ const SystemConfig = ({ showNotify }) => {
                 ))}
             </div>
 
-            {/* PART 3, 4, 5: CONTENT */}
+            {/* Content section for the selected configuration area */}
             <div style={styles.contentArea}>
                 {activeTab === "Work Timings" && renderWorkTimings()}
                 {activeTab === "Leave Configuration" && renderLeaveConfig()}
@@ -266,6 +270,7 @@ const SystemConfig = ({ showNotify }) => {
     );
 };
 
+// Centralized styles for the system configuration page.
 const styles = {
     container: { padding: '10px' },
     header: { marginBottom: '25px' },

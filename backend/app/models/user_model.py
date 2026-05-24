@@ -13,6 +13,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     dob = db.Column(db.Date, nullable=True)
+    department = db.Column(db.String(100), nullable=True)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum("admin", "employee"), default="employee")
     profile_image = db.Column(db.String(255))

@@ -14,6 +14,7 @@ const getTodayString = () => {
 };
 
 const AttendanceManagement = ({ showNotify }) => {
+  // State for employee lists, attendance datasets, filters, and UI feedback.
   const [employees, setEmployees] = useState([]);
   const [dailyData, setDailyData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
@@ -24,6 +25,7 @@ const AttendanceManagement = ({ showNotify }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
+  // Loads attendance data for the selected date and month.
   const loadData = async ({ withLoader = true, announce = false } = {}) => {
     if (withLoader) {
       setLoading(true);
@@ -62,6 +64,7 @@ const AttendanceManagement = ({ showNotify }) => {
     loadData();
   }, [selectedDate, selectedMonth]);
 
+  // Derived daily attendance view based on the selected employee filter.
   const filteredDailyData = useMemo(() => {
     if (selectedEmployee === "all") {
       return dailyData;
@@ -69,6 +72,7 @@ const AttendanceManagement = ({ showNotify }) => {
     return dailyData.filter((row) => row.employee_id === selectedEmployee);
   }, [dailyData, selectedEmployee]);
 
+  // Summary counts shown in the daily stats cards.
   const dailyStats = useMemo(() => {
     return filteredDailyData.reduce(
       (acc, row) => {
@@ -82,6 +86,7 @@ const AttendanceManagement = ({ showNotify }) => {
     );
   }, [filteredDailyData]);
 
+  // Exports the monthly summary table as a CSV report.
   const handleExport = () => {
     const headers = [
       "Employee Name",
@@ -133,6 +138,7 @@ const AttendanceManagement = ({ showNotify }) => {
 
   return (
     <div style={styles.container}>
+      {/* Header section with refresh and export actions */}
       <div style={styles.header}>
         <div>
           <h2 style={styles.title}>Attendance Tracking</h2>
@@ -156,6 +162,7 @@ const AttendanceManagement = ({ showNotify }) => {
         </div>
       </div>
 
+      {/* Filter controls for date, employee, and month selection */}
       <div style={styles.filtersCard}>
         <div style={styles.filterGrid}>
           <div>
@@ -205,6 +212,7 @@ const AttendanceManagement = ({ showNotify }) => {
         <div style={styles.loadingCard}>Loading attendance data...</div>
       ) : (
         <>
+          {/* Daily attendance summary cards */}
           <div style={styles.statsGrid}>
             <StatsCard label="Present" value={dailyStats.present} tone="#16a34a" bg="#dcfce7" />
             <StatsCard label="Late" value={dailyStats.late} tone="#d97706" bg="#fef3c7" />
@@ -212,6 +220,7 @@ const AttendanceManagement = ({ showNotify }) => {
             <StatsCard label="Absent" value={dailyStats.absent} tone="#dc2626" bg="#fee2e2" />
           </div>
 
+          {/* Daily attendance table section */}
           <div style={styles.tableCard}>
             <div style={styles.sectionHeader}>
               <div style={styles.sectionTitleWrap}>
@@ -276,6 +285,7 @@ const AttendanceManagement = ({ showNotify }) => {
             </div>
           </div>
 
+          {/* Monthly attendance summary table section */}
           <div style={{ ...styles.tableCard, marginTop: "24px" }}>
             <div style={styles.sectionHeader}>
               <div style={styles.sectionTitleWrap}>
@@ -353,6 +363,7 @@ const AttendanceManagement = ({ showNotify }) => {
   );
 };
 
+// Reusable summary card used in the daily attendance stats area.
 const StatsCard = ({ label, value, tone, bg }) => (
   <div style={styles.statCard}>
     <div style={{ ...styles.statValue, color: tone }}>{value}</div>
@@ -393,6 +404,7 @@ const statusStyles = {
   Absent: { background: "#fee2e2", color: "#dc2626" },
 };
 
+// Centralized styles for attendance tracking layout and tables.
 const styles = {
   container: { padding: "10px" },
   header: {

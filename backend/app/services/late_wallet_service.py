@@ -4,7 +4,7 @@ from typing import Optional
 from app.models.attendance_model import Attendance
 from app.models.system_config_model import SystemConfig
 from app.models.user_model import User
-from app.services.notification_service import ensure_notification_once
+from app.services.notification_service import ensure_notification_once, preference_enabled
 
 
 LOW_WALLET_THRESHOLD_MINUTES = 10
@@ -51,11 +51,8 @@ def check_and_send_late_wallet_alert(employee_id: str, *, when: Optional[datetim
     if not user:
         return
 
-    try:
-        if user.attendance_alerts is False:
-            return
-    except Exception:
-        pass
+    if not preference_enabled(user, "attendance_alerts", default=True):
+        return
 
     month_key = f"{now.year:04d}-{now.month:02d}"
 

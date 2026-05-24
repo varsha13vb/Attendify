@@ -44,6 +44,12 @@ function Justification() {
     }
   };
 
+  const getStatusStyle = (status) => {
+    if (status === "Approved") return styles.approved;
+    if (status === "Rejected") return styles.rejected;
+    return styles.pending;
+  };
+
   return (
     <Layout>
       <div style={styles.wrapper}>
@@ -65,9 +71,9 @@ function Justification() {
           <table style={styles.table}>
             <thead>
               <tr style={styles.headerRow}>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Reason</th>
-                <th style={styles.th}>Status</th>
+                <th style={{ ...styles.th, ...styles.dateColumn }}>Date</th>
+                <th style={{ ...styles.th, ...styles.reasonColumn }}>Reason</th>
+                <th style={{ ...styles.th, ...styles.statusColumn }}>Status</th>
               </tr>
             </thead>
 
@@ -81,19 +87,11 @@ function Justification() {
               ) : (
                 requests.map((req, index) => (
                   <tr key={index}>
-                    <td style={styles.td}>{req.date}</td>
-                    <td style={styles.td}>{req.reason}</td>
+                    <td style={{ ...styles.td, ...styles.dateColumn }}>{req.date}</td>
+                    <td style={{ ...styles.td, ...styles.reasonColumn }}>{req.reason}</td>
 
-                    <td style={styles.td}>
-                      <span
-                        style={
-                          req.status === "Approved"
-                            ? styles.approvedBadge
-                            : req.status === "Rejected"
-                            ? styles.rejectedBadge
-                            : styles.pendingBadge
-                        }
-                      >
+                    <td style={{ ...styles.td, ...styles.statusColumn, ...styles.statusCell }}>
+                      <span style={getStatusStyle(req.status)}>
                         {req.status}
                       </span>
                     </td>
@@ -202,7 +200,8 @@ overflowX:"auto"
 
 table:{
 width:"100%",
-borderCollapse:"collapse"
+borderCollapse:"collapse",
+tableLayout:"fixed"
 },
 
 headerRow:{
@@ -217,7 +216,26 @@ textAlign:"left"
 
 td:{
 padding:"12px",
-borderBottom:"1px solid var(--border)"
+borderBottom:"1px solid var(--border)",
+textAlign:"left",
+verticalAlign:"middle",
+wordBreak:"break-word"
+},
+
+dateColumn:{
+width:"22%"
+},
+
+reasonColumn:{
+width:"50%"
+},
+
+statusColumn:{
+width:"28%"
+},
+
+statusCell:{
+whiteSpace:"nowrap"
 },
 
 noData:{
@@ -226,28 +244,37 @@ textAlign:"center",
 color:"var(--muted-text)"
 },
 
-pendingBadge:{
+pending:{
 background:"#FEF3C7",
-color:"#D97706",
-padding:"6px 12px",
-borderRadius:"20px",
-fontSize:"13px"
+color:"#B45309",
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 },
 
-approvedBadge:{
+approved:{
 background:"#DCFCE7",
 color:"#16A34A",
-padding:"6px 12px",
-borderRadius:"20px",
-fontSize:"13px"
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 },
 
-rejectedBadge:{
+rejected:{
 background:"#FEE2E2",
 color:"#DC2626",
-padding:"6px 12px",
-borderRadius:"20px",
-fontSize:"13px"
+fontWeight:"800",
+padding:"6px 14px",
+borderRadius:"999px",
+fontSize:"12px",
+textTransform:"uppercase",
+display:"inline-block"
 }
 
 };

@@ -3,16 +3,17 @@ import axios from 'axios';
 import { Search, FileText, Clock, Calendar, CalendarCheck, X } from 'lucide-react';
 
 const LeaveManagement = () => {
+    // State for leave requests, filters, review modal, and notifications.
     const [leaves, setLeaves] = useState([]);
     const [filter, setFilter] = useState("Pending");
     const [searchTerm, setSearchTerm] = useState("");
     
-    // NEW STATES FOR MODAL & NOTIFICATION
     const [selectedLeave, setSelectedLeave] = useState(null);
     const [adminResponse, setAdminResponse] = useState("");
     const [error, setError] = useState("");
     const [toast, setToast] = useState({ show: false, msg: "", type: "" });
 
+    // Data loading and toast helper functions.
     const fetchLeaves = async () => {
         try {
             const res = await axios.get("http://127.0.0.1:5000/api/leave/all", {
@@ -29,7 +30,7 @@ const LeaveManagement = () => {
         setTimeout(() => setToast({ show: false, msg: "", type: "" }), 3000);
     };
 
-    // API HANDLER
+    // Admin action handler for approving or rejecting leave requests.
     const handleDecision = async (action) => {
         if (action === 'reject' && !adminResponse.trim()) {
             setError("Response is required for rejection");
@@ -68,18 +69,20 @@ const LeaveManagement = () => {
 
     return (
         <div style={styles.container}>
-            {/* TOAST NOTIFICATION */}
+            {/* Notification toast section */}
             {toast.show && (
                 <div style={{...styles.toast, background: toast.type === 'success' ? '#16a34a' : '#dc2626'}}>
                     {toast.msg}
                 </div>
             )}
 
+            {/* Header section */}
             <div style={styles.header}>
                 <h2 style={styles.title}>Leave Management</h2>
                 <p style={styles.subtitle}>Review and process employee time-off requests</p>
             </div>
 
+            {/* Filter and search section */}
             <div style={styles.filterRow}>
                 <div style={styles.pillContainer}>
                     {["Pending", "Approved", "Rejected", "All"].map(t => (
@@ -103,6 +106,7 @@ const LeaveManagement = () => {
                 </div>
             </div>
 
+            {/* Leave request cards section */}
             <div style={styles.cardGrid}>
                 {filteredLeaves.map((l) => (
                     <div key={l.id} style={styles.leaveCard}>
@@ -117,8 +121,10 @@ const LeaveManagement = () => {
                             <span style={{
                                 ...styles.statusBadge,
                                 backgroundColor: l.status === 'Approved' ? '#dcfce7' : l.status === 'Rejected' ? '#fee2e2' : '#fef3c7',
-                                color: l.status === 'Approved' ? '#166534' : l.status === 'Rejected' ? '#991b1b' : '#854d0e',
-                            }}>{l.status}</span>
+                                color: l.status === 'Approved' ? '#16a34a' : l.status === 'Rejected' ? '#dc2626' : '#b45309',
+                            }}>
+                                {l.status}
+                            </span>
                         </div>
                         <div style={styles.detailsGrid}>
                             <div style={styles.gridItem}>
@@ -148,7 +154,7 @@ const LeaveManagement = () => {
                 ))}
             </div>
 
-            {/* REVIEW MODAL */}
+            {/* Review modal section for admin decision-making */}
             {selectedLeave && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modalContent}>
@@ -213,6 +219,7 @@ const LeaveManagement = () => {
     );
 };
 
+// Centralized styles for the leave management page.
 const styles = {
     // ... Keeping all your existing styles exactly as they were ...
     container: { padding: '10px' },

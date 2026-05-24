@@ -38,6 +38,9 @@ const getLastNDates = (count) => {
   return days;
 };
 
+const formatChartDateLabel = (dayValue) =>
+  dayValue.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+
 function Dashboard() {
   const user = useMemo(() => getStoredUser(), []);
   const isAdmin = user?.role === "admin";
@@ -62,6 +65,10 @@ function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState(null);
+  const holidayDateKeys = useMemo(
+    () => new Set((dashboardData.holidays || []).map((holiday) => holiday.date)),
+    [dashboardData.holidays]
+  );
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -220,13 +227,21 @@ function Dashboard() {
                 <Calendar
                   className="dashboard-calendar"
                   tileClassName={({ date, view }) => {
-                    if (view !== "month") return null;
+                    if (view !== "month") {
+                      return null;
+                    }
 
-                    const isHoliday = dashboardData.holidays.find(
-                      (holiday) => new Date(holiday.date).toDateString() === date.toDateString()
-                    );
+                    const classNames = [];
 
-                    return isHoliday ? "dashboard-calendar__tile--holiday" : null;
+                    if (date.getDay() === 0) {
+                      classNames.push("dashboard-calendar__tile--sunday");
+                    }
+
+                    if (holidayDateKeys.has(getDateKey(date))) {
+                      classNames.push("dashboard-calendar__tile--holiday");
+                    }
+
+                    return classNames.join(" ") || null;
                   }}
                 />
               </div>
@@ -240,9 +255,7 @@ function Dashboard() {
 
 const buildEmployeeDashboardData = (user, attendance, wallet, leaves, holidays) => {
   const recentDays = getLastNDates(7);
-  const chartLabels = recentDays.map((dayValue) =>
-    dayValue.toLocaleDateString("en-US", { weekday: "short" })
-  );
+  const chartLabels = recentDays.map((dayValue) => formatChartDateLabel(dayValue));
 
   const attendanceMap = new Map((attendance || []).map((item) => [item.date, item]));
   const attendanceSeries = recentDays.map((dayValue) => (attendanceMap.has(getDateKey(dayValue)) ? 1 : 0));
@@ -296,7 +309,7 @@ const buildAdminDashboardData = (user, summaryResponse, holidays) => {
       { title: "Total Employees", value: summary.employee_count ?? 0 },
       { title: "Present Today", value: summary.present_today ?? 0 },
       { title: "Pending Leaves", value: summary.pending_leaves ?? 0 },
-      { title: "Remaining Wallet", value: summary.monthly_wallet_remaining ?? 0 },
+      // { title: "Remaining Wallet", value: summary.monthly_wallet_remaining ?? 0 },
     ],
     chartLabels: charts.labels || [],
     attendanceSeries: charts.attendance_counts || [],

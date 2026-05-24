@@ -174,9 +174,9 @@ const styles = {
     top: "52px",
     right: 0,
     width: "190px",
-    background: "var(--surface)",
-    color: "var(--text)",
-    border: "1px solid var(--border)",
+    background: "#ffffff",
+    color: "#111111",
+    border: "1px solid #e5e7eb",
     borderRadius: "12px",
     overflow: "hidden",
     boxShadow: "0 14px 35px rgba(0,0,0,0.16)",
@@ -188,10 +188,11 @@ const styles = {
     textAlign: "left",
     padding: "10px 12px",
     background: "transparent",
-    color: "var(--text)",
+    color: "#111111",
     border: "none",
     cursor: "pointer",
     fontSize: "14px",
+    fontWeight: "500",
   },
 
   menuItemDanger: {
@@ -208,7 +209,7 @@ const styles = {
 
   divider: {
     height: "1px",
-    background: "var(--border)",
+    background: "#e5e7eb",
   },
 };
 

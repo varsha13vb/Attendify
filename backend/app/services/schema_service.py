@@ -124,6 +124,7 @@ def ensure_schema() -> None:
 
         # Preferences columns used by the frontend.
         preference_columns = {
+            "department": "VARCHAR(100) NULL",
             "dark_mode": "BOOLEAN NOT NULL DEFAULT 0",
             "email_notifications": "BOOLEAN NOT NULL DEFAULT 1",
             "push_notifications": "BOOLEAN NOT NULL DEFAULT 0",

@@ -8,14 +8,17 @@ import SystemConfig from "./admin/SystemConfig";
 import JustificationManagement from "./admin/JustificationManagement";
 
 const AdminPanel = () => {
+  // State and UI feedback management
   const [activeTab, setActiveTab] = useState("Employee Management");
   const [notify, setNotify] = useState({ show: false, msg: "", type: "" });
 
+  // Shared helper used by child modules to show success or error notifications.
   const showNotify = (msg, type = "success") => {
     setNotify({ show: true, msg, type });
     setTimeout(() => setNotify({ show: false, msg: "", type: "" }), 3000);
   };
 
+  // Main admin sections shown in the dashboard tab navigation.
   const tabs = [
     "Employee Management",
     "Leave Management",
@@ -27,6 +30,7 @@ const AdminPanel = () => {
 
   return (
     <Layout>
+      {/* Notification toast section */}
       {notify.show && (
         <div style={{ ...styles.toast, background: notify.type === "error" ? "#ef4444" : "#16a34a" }}>
           {notify.msg}
@@ -34,11 +38,13 @@ const AdminPanel = () => {
       )}
 
       <div style={styles.wrapper}>
+        {/* Dashboard header section */}
         <div style={styles.header}>
           <h2 style={styles.title}>Admin Dashboard</h2>
           <p style={styles.subtitle}>System Overview & Management</p>
         </div>
 
+        {/* Sticky tab navigation section */}
         <div style={styles.stickyTop}>
           <div style={styles.tabBar}>
             {tabs.map((tab) => (
@@ -53,6 +59,7 @@ const AdminPanel = () => {
           </div>
         </div>
 
+        {/* Main content section: renders the selected admin module */}
         <div style={styles.contentArea}>
           {activeTab === "Employee Management" && <EmployeeManagement showNotify={showNotify} />}
           {activeTab === "Leave Management" && <LeaveManagement showNotify={showNotify} />}
@@ -66,6 +73,7 @@ const AdminPanel = () => {
   );
 };
 
+// Centralized inline styles for layout, tabs, and notifications.
 const styles = {
   wrapper: { padding: "2em", maxWidth: "1400px", margin: "0 auto" },
   stickyTop: {

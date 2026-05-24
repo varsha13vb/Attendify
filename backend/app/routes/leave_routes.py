@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import logging
 import os
@@ -13,6 +13,7 @@ from app import db
 from app.models.leave_model import Leave
 from app.models.user_model import User
 from app.services.email_service import send_message_async
+from app.services.notification_service import preference_enabled
 
 leave_bp = Blueprint("leave", __name__)
 
@@ -40,6 +41,12 @@ def apply_leave():
     today = datetime.today().date()
     if from_date < today:
         return jsonify({"message": "Cannot apply leave for past dates"}), 400
+
+    minimum_notice_date = today + timedelta(days=2)
+    if from_date < minimum_notice_date:
+        return jsonify({
+            "message": "Leave must be applied at least 2 days in advance. You cannot apply for today or tomorrow."
+        }), 400
 
     if to_date < from_date:
         return jsonify({"message": "To date cannot be before From date"}), 400
@@ -153,6 +160,12 @@ def _require_admin() -> Optional[User]:
 
 def _send_leave_status_email(*, employee: User, leave: Leave) -> None:
     if not current_app.config.get("SEND_LEAVE_STATUS_EMAIL", True):
+        return
+
+    if not preference_enabled(employee, "email_notifications", default=True):
+        return
+
+    if not preference_enabled(employee, "leave_requests", default=True):
         return
 
     sender = (

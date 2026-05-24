@@ -14,6 +14,7 @@ function Profile() {
   const [name, setName] = useState(storedUser?.name || "");
   const [email, setEmail] = useState(storedUser?.email || "");
   const [dob, setDob] = useState(storedUser?.dob || "");
+  const [department, setDepartment] = useState(storedUser?.department || "");
 
   const joiningDate = storedUser?.created_at ? String(storedUser.created_at).slice(0, 10) : "";
 
@@ -45,6 +46,7 @@ function Profile() {
       formData.append("name", name);
       formData.append("email", email);
       formData.append("dob", dob);
+      formData.append("department", department);
 
       if (imageFile) {
         formData.append("profile_image", imageFile);
@@ -57,6 +59,7 @@ function Profile() {
         name: response.name ?? name,
         email: response.email ?? email,
         dob: response.dob ?? dob,
+        department: response.department ?? department,
         created_at: response.created_at ?? storedUser?.created_at,
         profile_image: response.profile_image ?? storedUser?.profile_image,
       };
@@ -139,7 +142,7 @@ function Profile() {
 
             <div style={styles.field}>
               <label>Department</label>
-              <input value={storedUser?.department || ""} disabled style={styles.inputDisabled}/>
+              <input value={department} onChange={(e) => setDepartment(e.target.value)} style={styles.input}/>
             </div>
 
             <div style={styles.field}>
@@ -255,7 +258,7 @@ const styles = {
   input: {
     padding: "8px",
     borderRadius: "6px",
-    border: "1px solid var(--border)",
+    border: "1px solid #000000",
     background: "var(--surface)",
     color: "var(--text)",
   },
@@ -264,7 +267,7 @@ const styles = {
     padding: "8px",
     borderRadius: "6px",
     background: "var(--surface-2)",
-    border: "1px solid var(--border)",
+    border: "1px solid #000000",
     color: "var(--text)",
   },
 

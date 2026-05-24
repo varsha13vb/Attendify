@@ -51,6 +51,10 @@ def update_profile():
         except Exception:
             return jsonify({"message": "Invalid dob format. Use YYYY-MM-DD."}), 400
 
+    if "department" in request.form:
+        department = (request.form.get("department") or "").strip()
+        user.department = department or None
+
     if "profile_image" in request.files:
         file = request.files["profile_image"]
         if file and file.filename:
@@ -72,6 +76,7 @@ def update_profile():
         "name": user.name,
         "email": user.email,
         "dob": user.dob.isoformat() if user.dob else None,
+        "department": user.department,
         "profile_image": user.profile_image,
         "created_at": user.created_at.isoformat() if user.created_at else None,
     }), 200
@@ -96,6 +101,7 @@ def get_me():
         "name": user.name,
         "email": user.email,
         "dob": user.dob.isoformat() if user.dob else None,
+        "department": user.department,
         "role": user.role,
         "profile_image": user.profile_image,
         "created_at": user.created_at.isoformat() if user.created_at else None,

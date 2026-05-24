@@ -79,6 +79,46 @@ export const getTodayAttendanceStatus = async () => {
   return data;
 };
 
+export const requestPasswordReset = async (email) => {
+  const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to send password reset email");
+  }
+
+  return data;
+};
+
+export const resetPasswordWithToken = async ({ token, password, confirmPassword }) => {
+  const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      token,
+      password,
+      confirm_password: confirmPassword,
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to reset password");
+  }
+
+  return data;
+};
+
 export const clockInAttendance = async () => {
   const response = await fetch(`${BASE_URL}/api/attendance/clock-in`, {
     method: "POST",
